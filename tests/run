@@ -1,0 +1,64 @@
+#!/bin/sh
+
+test_count=0
+passed_count=0
+failed_count=0
+
+print_test_status() {
+    local name=$1
+    local status=$2
+    local color=$3
+    local newline=$4
+
+    if [ $newline = false ]; then
+        echo -en "\e[A\e[G"
+    fi
+
+    printf "\e[$color;1m%10s\e[22m $name\e[0m\n" "[$status]"
+}
+
+run_test() {
+    ((test_count++))
+    local name=$(basename -- $d)
+    print_test_status $name PENDING 0 true
+    local actual="${d}actual.txt"
+
+    if [ -f "${d}run" ]; then
+        $("./${d}run" > $actual 2>&1)
+    elif [ -f "${d}oncompile" ]; then
+        $("./target/opal" "./${d}main.oa" > $actual 2>&1)
+    else
+        $("./target/opal" "./${d}main.oa" > /dev/null)
+        $("./${d}target/program" > $actual 2>&1)
+    fi
+
+    local expected="${d}expected.txt"
+    cmp $actual $expected -s
+
+    if [ "$?" -eq "1" ]; then
+        ((failed_count++))
+        print_test_status $name FAILED 31 false
+        diff --color $actual $expected
+        echo
+    else
+        ((passed_count++))
+        print_test_status $name PASSED 32 false
+    fi
+
+    rm $actual
+}
+
+for d in tests/*/; do
+    run_test
+done
+
+echo -e "\n$test_count total tests"
+echo -e "\e[32m$passed_count passed tests"
+echo -e "\e[31m$failed_count failed tests\e[0m\n"
+
+if [ $failed_count -gt 0 ]; then
+    echo -e "\e[41;97m[FAILURES] Some tests failed\e[0m"
+    exit 1
+fi
+
+echo -e "\e[42;30m[OK] All tests passed\e[0m"
