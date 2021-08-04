@@ -1,0 +1,8 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] Expect "&&" but received "&+".
+--> ./tests/expected_double_ampersand/main.oa - 1:5
+1 | 1+2&+3+4
+  |     ^
+

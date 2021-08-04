@@ -1,3 +1,0 @@
-1 error has occured.
-
-[ERROR] Failed to open "./tests/unknown_file/main.oa".

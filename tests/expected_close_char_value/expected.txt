@@ -1,0 +1,8 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] A character value must be closed with "'" but received "3".
+--> ./tests/expected_close_char_value/main.oa - 1:6
+1 | 1+2'+3+4
+  |      ^
+
