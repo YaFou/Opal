@@ -2,7 +2,6 @@
 #include "util.h"
 #include "scan.h"
 #include "error.h"
-#include <stdio.h> // TODO remove
 
 typedef struct {
     Module* module;
@@ -115,4 +114,48 @@ void freeNode(Node* node)
     }
     
     free(node);
+}
+
+void optimizeNode(Node* node)
+{
+    if (node->type == NODE_INTEGER) {
+        return;
+    }
+
+    Node* left = node->children.left;
+    Node* right = node->children.right;
+
+    optimizeNode(left);
+    optimizeNode(right);
+
+    if (left->type != NODE_INTEGER || right->type != NODE_INTEGER) {
+        return;
+    }
+
+    int value;
+
+    #define COMBINE(operator) left->children.integer operator right->children.integer
+    switch (node->type) {
+        case NODE_ADD:
+            value = COMBINE(+);
+            break;
+        case NODE_SUBSTRACT:
+            value = COMBINE(-);
+            break;
+        case NODE_MULTIPLY:
+            value = COMBINE(*);
+            break;
+        case NODE_DIVIDE:
+            value = COMBINE(/);
+            break;
+        case NODE_MODULO:
+            value = COMBINE(%);
+            break;
+    }
+    #undef COMBINE
+
+    freeNode(node->children.left);
+    freeNode(node->children.right);
+    node->type = NODE_INTEGER;
+    node->children.integer = value;
 }

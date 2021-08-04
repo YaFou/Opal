@@ -43,7 +43,7 @@ void appendStringBuilder(StringBuilder *builder, char *string) {
 char* buildStringBuilder(StringBuilder *builder) {
     addStringBuilder(builder, '\0');
 
-    return builder->string;
+    return strdup(builder->string);
 }
 
 void freeStringBuilder(StringBuilder* builder)

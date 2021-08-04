@@ -1,8 +1,8 @@
 #ifndef OPAL_SCAN_H
 #define OPAL_SCAN_H
 
-#include "vector.h"
 #include "module.h"
+#include "vector.h"
 
 typedef enum {
     // SIGNS
@@ -35,8 +35,9 @@ typedef enum {
     TOKEN_SLASH_EQUAL,      // /=
     TOKEN_MODULO,           // %
     TOKEN_MODULO_EQUAL,     // %=
-    TOKEN_LEFT_BRACKET,       // [
-    TOKEN_RIGHT_BRACKET,      // ]
+    TOKEN_LEFT_BRACKET,     // [
+    TOKEN_RIGHT_BRACKET,    // ]
+    TOKEN_HASHTAG,          // #
 
     // VALUES
     TOKEN_INTEGER,

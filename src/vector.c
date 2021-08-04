@@ -1,6 +1,4 @@
 #include "vector.h"
-#include "error.h"
-#include <stdlib.h>
 #include "util.h"
 
 #define VECTOR_INITIAL_CAPACITY 8

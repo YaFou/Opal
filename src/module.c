@@ -1,9 +1,8 @@
 #include "module.h"
-#include <stdlib.h>
 #include <stdio.h>
 #include "error.h"
 #include "util.h"
-#include "scan.h"
+#include <stdlib.h>
 
 static char* readFile(char* filename)
 {

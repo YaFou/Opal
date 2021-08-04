@@ -34,5 +34,6 @@ typedef struct Node {
 
 Node* parse(Module* module, Vector* tokens);
 void freeNode(Node* node);
+void optimizeNode(Node* node);
 
 #endif

@@ -1,8 +1,10 @@
+#include <stdio.h>
+#include "module.h"
+#include "vector.h"
+#include "parse.h"
 #include "scan.h"
 #include "error.h"
-#include <stdio.h>
 #include "debug.h"
-#include "parse.h"
 
 int main(int argc, char** argv)
 {
@@ -14,7 +16,6 @@ int main(int argc, char** argv)
 
     Module* module = newModuleFromFilename(argv[1]);
     Vector* tokens = scan(module);
-    // debugTokens(tokens);
 
     if (hasErrors()) {
         fprintf(stderr, "Compilation failed.\n");
@@ -29,6 +30,7 @@ int main(int argc, char** argv)
         throwErrors();
     }
 
+    optimizeNode(node);
     printf("%d", interpretNode(node));
 
     freeNode(node);

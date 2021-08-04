@@ -1,6 +1,6 @@
-#include <stdarg.h>
 #include "util.h"
 #include "error.h"
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include "stringbuilder.h"
@@ -48,7 +48,7 @@ char* repeatString(char* string, int times)
         appendStringBuilder(builder, string);
     }
 
-    char* result = strdup(buildStringBuilder(builder));
+    char* result = buildStringBuilder(builder);
     freeStringBuilder(builder);
 
     return result;

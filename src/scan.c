@@ -1,9 +1,8 @@
 #include "scan.h"
-#include "error.h"
 #include "util.h"
-#include <stdbool.h>
-#include "stringbuilder.h"
 #include <string.h>
+#include "stringbuilder.h"
+#include "error.h"
 
 typedef struct {
     Module* module;
@@ -227,7 +226,7 @@ static Token* makeIdentifier(Scanner* scanner)
 
     back(scanner);
 
-    char* identifier = strdup(buildStringBuilder(builder));
+    char* identifier = buildStringBuilder(builder);
     freeStringBuilder(builder);
     Token* token = makeKeyword(scanner, identifier);
 
@@ -281,7 +280,7 @@ static Token* makeString(Scanner* scanner)
     }
 
     Token* token = makeToken(scanner, TOKEN_STRING);
-    token->value.string = strdup(buildStringBuilder(builder));
+    token->value.string = buildStringBuilder(builder);
     freeStringBuilder(builder);
 
     return token;
@@ -330,6 +329,7 @@ static Token* getToken(Scanner* scanner)
         case ']': return makeToken(scanner, TOKEN_RIGHT_BRACKET);
         case '\'': return makeChar(scanner);
         case '"': return makeString(scanner);
+        case '#': return makeToken(scanner, TOKEN_HASHTAG);
     }
 
     addErrorAt(scanner->module, scanner->currentIndex, scanner->currentIndex + 1, "Unexpected character \"%c\".", c);

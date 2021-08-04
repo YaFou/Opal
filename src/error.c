@@ -1,10 +1,10 @@
 #include "error.h"
 #include "vector.h"
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include "stringbuilder.h"
 #include <stdlib.h>
 #include "util.h"
-#include "stringbuilder.h"
 #include <string.h>
 
 Vector* errors;
@@ -180,7 +180,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
     }
 
     freeVector(lines);
-    addErrorNotFormat(strdup(buildStringBuilder(builder)));
+    addErrorNotFormat(buildStringBuilder(builder));
     freeStringBuilder(builder);
 }
 
