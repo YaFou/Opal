@@ -49,7 +49,7 @@ run_test() {
         print_test_status $name PASSED 32 false
     fi
 
-    rm $actual
+    # rm $actual
 }
 
 if [ "$1" = "-q" ]; then

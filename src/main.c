@@ -2,6 +2,7 @@
 #include "error.h"
 #include <stdio.h>
 #include "debug.h"
+#include "parse.h"
 
 int main(int argc, char** argv)
 {
@@ -12,15 +13,25 @@ int main(int argc, char** argv)
     }
 
     Module* module = newModuleFromFilename(argv[1]);
-    module->tokens = scan(module);
-    // debugTokens(module->tokens);
+    Vector* tokens = scan(module);
+    // debugTokens(tokens);
 
     if (hasErrors()) {
         fprintf(stderr, "Compilation failed.\n");
         throwErrors();
     }
 
-    freeVector(module->tokens);
+    Node* node = parse(module, tokens);
+    freeVector(tokens);
+
+    if (hasErrors()) {
+        fprintf(stderr, "Compilation failed.\n");
+        throwErrors();
+    }
+
+    printf("%d", interpretNode(node));
+
+    freeNode(node);
     freeModule(module);
 
     return 0;

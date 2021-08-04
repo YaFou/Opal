@@ -18,7 +18,7 @@ static Token* makeToken(Scanner* scanner, TokenType type)
     token->type = type;
     token->module = scanner->module;
     token->startIndex = scanner->startIndex;
-    token->endIndex = scanner->currentIndex;
+    token->endIndex = scanner->currentIndex + 1;
     
     return token;
 }
@@ -245,7 +245,11 @@ static bool expectChar(Scanner* scanner, char c, char* message)
 {
     if (!isCharMatch(scanner, c)) {
         addErrorAt(scanner->module, scanner->currentIndex + 1, scanner->currentIndex + 2, message, getNextChar(scanner));
+
+        return false;
     }
+
+    return true;
 }
 
 static Token* makeChar(Scanner* scanner)
@@ -305,7 +309,7 @@ static Token* getToken(Scanner* scanner)
         case '+': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
         case '-': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
         case '*': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
-        case '/': return makeToken(scanner, isCharMatch(scanner, '/') ? TOKEN_NONE : isCharMatch(scanner, '=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
+        case '/': return makeToken(scanner, isCharMatch(scanner, '/') ? TOKEN_NONE : isCharMatch(scanner, '=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
         case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
         case ')': return makeToken(scanner, TOKEN_RIGHT_PAREN);
         case '{': return makeToken(scanner, TOKEN_LEFT_BRACE);
@@ -350,13 +354,14 @@ Vector* scan(Module* module)
             continue;
         }
 
-        pushVector(scanner->tokens, token);
-
         if (token->type == TOKEN_EOF) {
             break;
         }
+
+        pushVector(scanner->tokens, token);
     }
     
+    pushVector(scanner->tokens, makeToken(scanner, TOKEN_EOF));
     Vector* tokens = scanner->tokens;
     free(scanner);
 

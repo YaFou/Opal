@@ -25,18 +25,23 @@ void throwFatal(char* message, ...)
     exit(2);
 }
 
-void addError(char* message, ...)
+static void addErrorNotFormat(char* message)
 {
     if (errors == NULL) {
         errors = newVector();
     }
 
+    pushVector(errors, message);
+}
+
+void addError(char* message, ...)
+{
     char buffer[2048];
     va_list args;
     va_start(args, message);
     vsprintf(buffer, message, args);
     va_end(args);
-    pushVector(errors, strdup(buffer));
+    addErrorNotFormat(buffer);
 }
 
 void throwErrors()
@@ -52,7 +57,6 @@ void throwErrors()
     exit(1);
 }
 
-
 void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...)
 {
     char formattedMessage[2048];
@@ -60,7 +64,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
     va_start(args, message);
     vsprintf(formattedMessage, message, args);
     va_end(args);
-
+    
     StringBuilder* builder = newStringBuilder();
     appendStringBuilder(builder, formattedMessage);
 
@@ -175,26 +179,8 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
         freeStringBuilder(lineBuilder);
     }
 
-    // int maxLineLength = strlen(format("%d", lineI));
-    // char* lineFormat = format("%%%dd | %%s\n", maxLineLength);
-    // char* locationFormat = format(format("%%%dc | ", maxLineLength), ' ');
-
-    // for (VECTOR_EACH(lines)) {
-    //     StringBuilder* lineBuilder = VECTOR_GET(lines, i);
-    //     char* line = buildStringBuilder(lineBuilder);
-    //     int realLineNumber = lineNumber + i;
-    //     appendStringBuilder(builder, format(lineFormat, realLineNumber, line));
-
-    //     if (realLineNumber == startLine && realLineNumber == endLine) {
-    //         char* realLocationFormat = format("%s%%%dc%%%dc", locationFormat, startColumn - 1, endColumn - startColumn);
-    //         appendStringBuilder(builder, format(realLocationFormat, ' ', '^', ' '));
-    //     }
-
-    //     freeStringBuilder(lineBuilder);
-    // }
-
     freeVector(lines);
-    addError(buildStringBuilder(builder));
+    addErrorNotFormat(strdup(buildStringBuilder(builder)));
     freeStringBuilder(builder);
 }
 

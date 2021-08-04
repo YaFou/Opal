@@ -46,3 +46,32 @@ void debugTokens(Vector* tokens)
         }
     }
 }
+
+int interpretNode(Node* node)
+{
+    int value;
+
+    #define COMBINE(node, operator) interpretNode(node->children.left) operator interpretNode(node->children.right)
+    switch (node->type) {
+        case NODE_ADD:
+            value = COMBINE(node, +);
+            break;
+        case NODE_SUBSTRACT:
+            value = COMBINE(node, -);
+            break;
+        case NODE_MULTIPLY:
+            value = COMBINE(node, *);
+            break;
+        case NODE_DIVIDE:
+            value = COMBINE(node, /);
+            break;
+        case NODE_MODULO:
+            value = COMBINE(node, %);
+            break;
+        case NODE_INTEGER:
+            value = node->children.integer;
+    }
+    #undef COMBINE
+
+    return value;
+}

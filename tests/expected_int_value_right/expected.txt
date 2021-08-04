@@ -1,0 +1,8 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] Expect an integer value.
+--> ./tests/expected_int_value_right/main.oa - 1:4
+1 | 12+
+  |    ^
+
