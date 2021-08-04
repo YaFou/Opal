@@ -1,5 +1,7 @@
-#include "tokenizer.h"
+#include "scan.h"
 #include "error.h"
+#include <stdio.h>
+#include "debug.h"
 
 int main(int argc, char** argv)
 {
@@ -9,19 +11,17 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    FILE* file = fopen(argv[1], "r");
+    Module* module = newModuleFromFilename(argv[1]);
+    module->tokens = scan(module);
+    // debugTokens(module->tokens);
 
-    if (file == NULL) {
-        addError("Failed to open \"%s\".", argv[1]);
+    if (hasErrors()) {
+        fprintf(stderr, "Compilation failed.\n");
         throwErrors();
     }
 
-    Module* module = newModuleFromFile(argv[1], file);
-    fclose(file);
-    Vector* tokens = tokenize(module);
-    module->tokens = tokens;
+    freeVector(module->tokens);
     freeModule(module);
-    freeVector(tokens);
 
     return 0;
 }

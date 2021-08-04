@@ -1,0 +1,13 @@
+Compilation failed.
+2 errors have occured.
+
+[ERROR] Unexpected character "~".
+--> ./tests/unexpected_token_2/main.oa - 1:4
+1 | 1+2~+3+4
+  |    ^
+
+[ERROR] Unexpected character "~".
+--> ./tests/unexpected_token_2/main.oa - 3:7
+3 | +7+8+9~
+  |       ^
+

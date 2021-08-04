@@ -3,6 +3,7 @@
 test_count=0
 passed_count=0
 failed_count=0
+quiet=false
 
 print_test_status() {
     local name=$1
@@ -38,15 +39,22 @@ run_test() {
     if [ "$?" -eq "1" ]; then
         ((failed_count++))
         print_test_status $name FAILED 31 false
-        diff --color $actual $expected
-        echo
+
+        if [ $quiet = false ]; then
+            diff --color $actual $expected
+            echo
+        fi
     else
         ((passed_count++))
         print_test_status $name PASSED 32 false
     fi
 
-    rm $actual
+    # rm $actual
 }
+
+if [ "$1" = "-q" ]; then
+    quiet=true
+fi
 
 for d in tests/*/; do
     run_test

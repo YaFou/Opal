@@ -1,43 +1,52 @@
 #include "module.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include "error.h"
+#include "util.h"
+#include "scan.h"
 
-Module* newModuleFromFile(char* filename, FILE* file)
+static char* readFile(char* filename)
 {
-    fseek(file, 0L, SEEK_END);
-    size_t fileSize = ftell(file);
-    rewind(file);
-    char* buffer = malloc(fileSize + 1);
+    FILE* file = fopen(filename, "rb");
 
-    if (buffer == NULL) {
-        throwFailedAlloc();
+    if (file == NULL) {
+        addError("Failed to open \"%s\".", filename);
+        throwErrors();
     }
+    
+    fseek(file, 0, SEEK_END);
+    size_t size = ftell(file);
+    rewind(file);
 
-    size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+    char* buffer = safeMalloc((size + 1) * sizeof(char));
+    size_t sizeRead = fread(buffer, sizeof(char), size, file);
 
-    if (bytesRead < fileSize) {
+    if (sizeRead < size) {
         addError("Failed to read \"%s\".", filename);
         throwErrors();
     }
-
-    buffer[bytesRead] = '\0';
-    Module* module = malloc(sizeof(module));
-
-    if (module == NULL) {
-        throwFailedAlloc();
+    
+    if (fclose(file)) {
+        addError("Failed to close \"%s\".", filename);
+        throwErrors();
     }
 
+    buffer[sizeRead] = '\0';
+
+    return buffer;
+}
+
+Module* newModuleFromFilename(char* filename)
+{
+    Module* module = safeMalloc(sizeof(Module));
+    module->filename = filename;
     module->name = filename;
-    module->code = buffer;
+    module->source = readFile(filename);
 
     return module;
 }
 
 void freeModule(Module* module)
 {
-    if (module->tokens != NULL) {
-        freeVector(module->tokens);
-    }
-
     free(module);
 }
