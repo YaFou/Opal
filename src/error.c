@@ -50,7 +50,7 @@ void throwErrors()
 
     for (VECTOR_EACH(errors)) {
         fprintf(stderr, "[ERROR] ");
-        fprintf(stderr, VECTOR_GET(errors, i));
+        fprintf(stderr, "%s", VECTOR_GET(errors, i));
         fprintf(stderr, "\n");
     }
 
@@ -123,7 +123,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
 
         if (c == '\n') {
             lineIndex++;
-            columnIndex++;
+            columnIndex = 1;
             pushVector(lines, line);
             line = newStringBuilder();
         }
@@ -165,15 +165,37 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
     }
 
     appendStringBuilder(builder, format("\n--> %s - %d:%d\n", module->filename, startLine, startColumn));
+    int maxLineLength = strlen(format("%d", endLine));
+    char* lineFormat = format("%%%dd | %%s\n%s | ", maxLineLength, repeatString(" ", maxLineLength));
+    bool hasCut = false;
 
     for (VECTOR_EACH(lines)) {
         StringBuilder* lineBuilder = VECTOR_GET(lines, i);
         char* line = buildStringBuilder(lineBuilder);
+
+        if (!strlen(line)) {
+
+            if (!hasCut) {
+                hasCut = true;
+                appendStringBuilder(builder, format("%s\n", repeatString("-", maxLineLength + 7)));
+                freeStringBuilder(lineBuilder);
+            }
+
+            continue;
+        }
+
+        hasCut = false;
         int lineNumber = startLine + i;
-        appendStringBuilder(builder, format("%d | %s\n", lineNumber, line));
+        appendStringBuilder(builder, format(lineFormat, lineNumber, line));
 
         if (lineNumber == startLine && lineNumber == endLine) {
-            appendStringBuilder(builder, format("  | %s%s\n", repeatString(" ", startColumn - 1), repeatString("^", endColumn - startColumn)));
+            appendStringBuilder(builder, format("%s%s\n", repeatString(" ", startColumn - 1), repeatString("^", endColumn - startColumn)));
+        } else if (lineNumber == startLine) {
+            appendStringBuilder(builder, format("%s%s\n", repeatString(" ", startColumn - 1), repeatString("^", strlen(line) - startColumn + 1)));
+        } else if (lineNumber == endLine) {
+            appendStringBuilder(builder, format("%s\n", repeatString("^", endColumn - 1)));
+        } else {
+            appendStringBuilder(builder, format("%s\n", repeatString("^", strlen(line))));
         }
 
         freeStringBuilder(lineBuilder);

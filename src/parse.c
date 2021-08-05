@@ -74,7 +74,7 @@ static NodeType arithmeticOperation(Parser* parser, Token* token)
             return NODE_MODULO;
     }
 
-    addErrorAtToken(parser, token, "Expect an arithmetic operation (+ - * / or %%%%).");
+    addErrorAtToken(parser, token, "Expect an arithmetic operation (+ - * / or %%).");
 }
 
 static Node* expression(Parser* parser)
@@ -116,7 +116,7 @@ void freeNode(Node* node)
     free(node);
 }
 
-void optimizeNode(Node* node)
+void optimizeNode(Module* module, Node* node)
 {
     if (node->type == NODE_INTEGER) {
         return;
@@ -125,8 +125,8 @@ void optimizeNode(Node* node)
     Node* left = node->children.left;
     Node* right = node->children.right;
 
-    optimizeNode(left);
-    optimizeNode(right);
+    optimizeNode(module, left);
+    optimizeNode(module, right);
 
     if (left->type != NODE_INTEGER || right->type != NODE_INTEGER) {
         return;
@@ -146,9 +146,21 @@ void optimizeNode(Node* node)
             value = COMBINE(*);
             break;
         case NODE_DIVIDE:
+            if (right->children.integer == 0) {
+                addErrorAt(module, right->startIndex, right->endIndex, "Can't divide per zero.");
+
+                return;
+            }
+
             value = COMBINE(/);
             break;
         case NODE_MODULO:
+            if (right->children.integer == 0) {
+                addErrorAt(module, right->startIndex, right->endIndex, "Can't modulo per zero.");
+
+                return;
+            }
+
             value = COMBINE(%);
             break;
     }
