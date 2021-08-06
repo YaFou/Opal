@@ -11,7 +11,9 @@ typedef struct {
     Vector* tokens;
 } Scanner;
 
-static Token* makeToken(Scanner* scanner, TokenType type)
+Scanner* scanner;
+
+static Token* makeToken(TokenType type)
 {
     Token* token = safeMalloc(sizeof(Token));
     token->type = type;
@@ -33,24 +35,24 @@ static Scanner* newScanner(Module* module)
     return scanner;
 }
 
-static char getCharAt(Scanner* scanner, int index)
+static char peekAt(int index)
 {
     return scanner->module->source[index];
 }
 
-static char getChar(Scanner* scanner)
+static char peek()
 {
-    return getCharAt(scanner, scanner->currentIndex);
+    return peekAt(scanner->currentIndex);
 }
 
-static void advance(Scanner* scanner)
+static void advance()
 {
     scanner->currentIndex++;
 }
 
-static bool isAtEnd(Scanner* scanner)
+static bool isAtEnd()
 {
-    return getChar(scanner) == '\0';
+    return peek(scanner) == '\0';
 }
 
 static bool isDigit(char c)
@@ -63,36 +65,36 @@ static int convertCharToInteger(char c)
     return (int) c - 48;
 }
 
-static void back(Scanner* scanner)
+static void back()
 {
     scanner->currentIndex--;
 }
 
-static char getNextChar(Scanner* scanner)
+static char peekNext()
 {
-    return getCharAt(scanner, scanner->currentIndex + 1);
+    return peekAt(scanner->currentIndex + 1);
 }
 
-static bool isCharMatch(Scanner* scanner, char c)
+static bool match(char c)
 {
-    if (isAtEnd(scanner) || getNextChar(scanner) != c) {
+    if (isAtEnd() || peekNext() != c) {
         return false;
     }
 
-    advance(scanner);
+    advance();
 
     return true;
 }
 
-static Token* makeNumber(Scanner* scanner)
+static Token* makeNumber()
 {
-    char c = getChar(scanner);
+    char c = peek();
     float value = convertCharToInteger(c);
-    advance(scanner);
+    advance();
     bool hasDot = false;
     int divider = 10;
 
-    while (isDigit(c = getChar(scanner))) {
+    while (isDigit(c = peek())) {
         value = hasDot ?
             value + convertCharToInteger(c) / divider :
             value * 10 + convertCharToInteger(c);
@@ -101,15 +103,15 @@ static Token* makeNumber(Scanner* scanner)
             divider *= 10;
         }
 
-        if (!hasDot && isCharMatch(scanner, '.')) {
+        if (!hasDot && match('.')) {
             hasDot = true;
         }
 
-        advance(scanner);
+        advance();
     }
 
-    back(scanner);
-    Token* token = makeToken(scanner, hasDot ? TOKEN_FLOAT : TOKEN_INTEGER);
+    back();
+    Token* token = makeToken(hasDot ? TOKEN_FLOAT : TOKEN_INTEGER);
     
     if (hasDot) {
         token->value._float = value;
@@ -120,11 +122,11 @@ static Token* makeNumber(Scanner* scanner)
     return token;
 }
 
-static void skipWhitespaces(Scanner* scanner)
+static void skipWhitespaces()
 {
     while(true) {
-        if (isWhitespace(getChar(scanner))) {
-            advance(scanner);
+        if (isWhitespace(peek())) {
+            advance();
 
             continue;
         }
@@ -140,74 +142,74 @@ static bool isAlpha(char c)
         c == '_';
 }
 
-static Token* makeKeyword(Scanner* scanner, char* keyword)
+static Token* makeKeyword(char* keyword)
 {
     switch (*keyword) {
         case 'a':
             if (!strcmp(keyword, "abstract")) {
-                return makeToken(scanner, TOKEN_ABSTRACT);
+                return makeToken(TOKEN_ABSTRACT);
             }
             break;
         case 'b':
             if (!strcmp(keyword, "break")) {
-                return makeToken(scanner, TOKEN_BREAK);
+                return makeToken(TOKEN_BREAK);
             }
             break;
         case 'c':
             if (!strcmp(keyword, "class")) {
-                return makeToken(scanner, TOKEN_CLASS);
+                return makeToken(TOKEN_CLASS);
             }
             if (!strcmp(keyword, "const")) {
-                return makeToken(scanner, TOKEN_CONST);
+                return makeToken(TOKEN_CONST);
             }
             if (!strcmp(keyword, "continue")) {
-                return makeToken(scanner, TOKEN_CONTINUE);
+                return makeToken(TOKEN_CONTINUE);
             }
             break;
         case 'd':
             if (!strcmp(keyword, "do")) {
-                return makeToken(scanner, TOKEN_DO);
+                return makeToken(TOKEN_DO);
             }
             break;
         case 'e':
             if (!strcmp(keyword, "else")) {
-                return makeToken(scanner, TOKEN_ELSE);
+                return makeToken(TOKEN_ELSE);
             }
             if (!strcmp(keyword, "enum")) {
-                return makeToken(scanner, TOKEN_ENUM);
+                return makeToken(TOKEN_ENUM);
             }
             break;
         case 'f':
             if (!strcmp(keyword, "for")) {
-                return makeToken(scanner, TOKEN_FOR);
+                return makeToken(TOKEN_FOR);
             }
             break;
         case 'i':
             if (!strcmp(keyword, "if")) {
-                return makeToken(scanner, TOKEN_IF);
+                return makeToken(TOKEN_IF);
             }
             if (!strcmp(keyword, "interface")) {
-                return makeToken(scanner, TOKEN_INTERFACE);
+                return makeToken(TOKEN_INTERFACE);
             }
             break;
         case 'l':
             if (!strcmp(keyword, "loop")) {
-                return makeToken(scanner, TOKEN_LOOP);
+                return makeToken(TOKEN_LOOP);
             }
             break;
         case 'r':
             if (!strcmp(keyword, "return")) {
-                return makeToken(scanner, TOKEN_RETURN);
+                return makeToken(TOKEN_RETURN);
             }
             break;
         case 'v':
             if (!strcmp(keyword, "var")) {
-                return makeToken(scanner, TOKEN_VAR);
+                return makeToken(TOKEN_VAR);
             }
             break;
         case 'w':
             if (!strcmp(keyword, "while")) {
-                return makeToken(scanner, TOKEN_WHILE);
+                return makeToken(TOKEN_WHILE);
             }
             break;
     }
@@ -215,35 +217,35 @@ static Token* makeKeyword(Scanner* scanner, char* keyword)
     return NULL;
 }
 
-static Token* makeIdentifier(Scanner* scanner)
+static Token* makeIdentifier()
 {
     StringBuilder* builder = newStringBuilder();
 
-    while (isAlpha(getChar(scanner)) || isDigit(getChar(scanner))) {
-        addStringBuilder(builder, getChar(scanner));
-        advance(scanner);
+    while (isAlpha(peek()) || isDigit(peek())) {
+        addStringBuilder(builder, peek());
+        advance();
     }
 
-    back(scanner);
+    back();
 
     char* identifier = buildStringBuilder(builder);
     freeStringBuilder(builder);
-    Token* token = makeKeyword(scanner, identifier);
+    Token* token = makeKeyword(identifier);
 
     if (token != NULL) {
         return token;
     }
 
-    token = makeToken(scanner, TOKEN_IDENTIFIER);
+    token = makeToken(TOKEN_IDENTIFIER);
     token->value.string = identifier;
 
     return token;
 }
 
-static bool expectChar(Scanner* scanner, char c, char* message)
+static bool expect(char c, char* message)
 {
-    if (!isCharMatch(scanner, c)) {
-        addErrorAt(scanner->module, scanner->currentIndex + 1, scanner->currentIndex + 2, message, getNextChar(scanner));
+    if (!match(c)) {
+        addErrorAt(scanner->module, scanner->currentIndex + 1, scanner->currentIndex + 2, message, peekNext());
 
         return false;
     }
@@ -251,99 +253,99 @@ static bool expectChar(Scanner* scanner, char c, char* message)
     return true;
 }
 
-static Token* makeChar(Scanner* scanner)
+static Token* makeChar()
 {
-    advance(scanner);
-    Token* token = makeToken(scanner, TOKEN_CHAR);
-    token->value.c = getChar(scanner);
-    expectChar(scanner, '\'', "A character value must be closed with \"'\" but received \"%c\".");
+    advance();
+    Token* token = makeToken(TOKEN_CHAR);
+    token->value.c = peek();
+    expect('\'', "A character value must be closed with \"'\" but received \"%c\".");
 
     return token;
 }
 
-static Token* makeString(Scanner* scanner)
+static Token* makeString()
 {
-    advance(scanner);
+    advance();
     StringBuilder* builder = newStringBuilder();
     char c;
 
-    while (c = getChar(scanner) != '"') {
+    while (c = peek(scanner) != '"') {
         addStringBuilder(builder, c);
-        advance(scanner);
+        advance();
 
-        if (isAtEnd(scanner)) {
+        if (isAtEnd()) {
             addErrorAt(scanner->module, scanner->currentIndex, scanner->currentIndex + 1, "A string value must be closed with '\"' but it's the end of the file.");
-            back(scanner);
+            back();
 
-            return makeToken(scanner, TOKEN_NONE);
+            return makeToken(TOKEN_NONE);
         }
     }
 
-    Token* token = makeToken(scanner, TOKEN_STRING);
+    Token* token = makeToken(TOKEN_STRING);
     token->value.string = buildStringBuilder(builder);
     freeStringBuilder(builder);
 
     return token;
 }
 
-static Token* getToken(Scanner* scanner)
+static Token* getToken()
 {
-    skipWhitespaces(scanner);
+    skipWhitespaces();
 
-    if (isAtEnd(scanner)) {
-        return makeToken(scanner, TOKEN_EOF);
+    if (isAtEnd()) {
+        return makeToken(TOKEN_EOF);
     }
 
-    char c = getChar(scanner);
+    char c = peek();
 
     if (isAlpha(c)) {
-        return makeIdentifier(scanner);
+        return makeIdentifier();
     }
 
     if (isDigit(c)) {
-        return makeNumber(scanner);
+        return makeNumber();
     }
 
     switch (c) {
-        case '+': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
-        case '-': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
-        case '*': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
-        case '/': return makeToken(scanner, isCharMatch(scanner, '/') ? TOKEN_NONE : isCharMatch(scanner, '=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
-        case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
-        case ')': return makeToken(scanner, TOKEN_RIGHT_PAREN);
-        case '{': return makeToken(scanner, TOKEN_LEFT_BRACE);
-        case '}': return makeToken(scanner, TOKEN_RIGHT_BRACE);
-        case ';': return makeToken(scanner, TOKEN_SEMILICON);
-        case '=': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_DOUBLE_EQUAL : TOKEN_EQUAL);
-        case '!': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
-        case '<': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
-        case '>': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
-        case '.': return makeToken(scanner, TOKEN_DOT);
-        case ',': return makeToken(scanner, TOKEN_COMMA);
-        case '^': return makeToken(scanner, TOKEN_CIRCUMFLEX);
-        case '&': return makeToken(scanner, expectChar(scanner, '&', "Expect \"&&\" but received \"&%c\".") ? TOKEN_DOUBLE_AMPERSAND : TOKEN_NONE);
-        case '|': return makeToken(scanner, expectChar(scanner, '|', "Expect \"||\" but received \"|%c\".") ? TOKEN_DOUBLE_PIPE : TOKEN_NONE);
-        case '?': return makeToken(scanner, TOKEN_QUESTION_MARK);
-        case '%': return makeToken(scanner, isCharMatch(scanner, '=') ? TOKEN_MODULO_EQUAL : TOKEN_MODULO);
-        case '[': return makeToken(scanner, TOKEN_LEFT_BRACKET);
-        case ']': return makeToken(scanner, TOKEN_RIGHT_BRACKET);
-        case '\'': return makeChar(scanner);
-        case '"': return makeString(scanner);
-        case '#': return makeToken(scanner, TOKEN_HASHTAG);
+        case '+': return makeToken(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
+        case '-': return makeToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
+        case '*': return makeToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
+        case '/': return makeToken(match('/') ? TOKEN_NONE : match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        case '(': return makeToken(TOKEN_LEFT_PAREN);
+        case ')': return makeToken(TOKEN_RIGHT_PAREN);
+        case '{': return makeToken(TOKEN_LEFT_BRACE);
+        case '}': return makeToken(TOKEN_RIGHT_BRACE);
+        case ';': return makeToken(TOKEN_SEMILICON);
+        case '=': return makeToken(match('=') ? TOKEN_DOUBLE_EQUAL : TOKEN_EQUAL);
+        case '!': return makeToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+        case '<': return makeToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+        case '>': return makeToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+        case '.': return makeToken(TOKEN_DOT);
+        case ',': return makeToken(TOKEN_COMMA);
+        case '^': return makeToken(TOKEN_CIRCUMFLEX);
+        case '&': return makeToken(expect('&', "Expect \"&&\" but received \"&%c\".") ? TOKEN_DOUBLE_AMPERSAND : TOKEN_NONE);
+        case '|': return makeToken(expect('|', "Expect \"||\" but received \"|%c\".") ? TOKEN_DOUBLE_PIPE : TOKEN_NONE);
+        case '?': return makeToken(TOKEN_QUESTION_MARK);
+        case '%': return makeToken(match('=') ? TOKEN_MODULO_EQUAL : TOKEN_MODULO);
+        case '[': return makeToken(TOKEN_LEFT_BRACKET);
+        case ']': return makeToken(TOKEN_RIGHT_BRACKET);
+        case '\'': return makeChar();
+        case '"': return makeString();
+        case '#': return makeToken(TOKEN_HASHTAG);
     }
 
     addErrorAt(scanner->module, scanner->currentIndex, scanner->currentIndex + 1, "Unexpected character \"%c\".", c);
 
-    return makeToken(scanner, TOKEN_NONE);
+    return makeToken(TOKEN_NONE);
 }
 
 Vector* scan(Module* module)
 {
-    Scanner* scanner = newScanner(module);
+    scanner = newScanner(module);
 
-    while (!isAtEnd(scanner)) {
-        Token* token = getToken(scanner);
-        advance(scanner);
+    while (!isAtEnd()) {
+        Token* token = getToken();
+        advance();
         scanner->startIndex = scanner->currentIndex;
 
         if (token->type == TOKEN_NONE || hasErrors()) {
@@ -361,7 +363,7 @@ Vector* scan(Module* module)
         pushVector(scanner->tokens, token);
     }
     
-    pushVector(scanner->tokens, makeToken(scanner, TOKEN_EOF));
+    pushVector(scanner->tokens, makeToken(TOKEN_EOF));
     Vector* tokens = scanner->tokens;
     free(scanner);
 

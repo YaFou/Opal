@@ -15,6 +15,8 @@ typedef struct {
     bool usedRegisters[REGISTERS_COUNT];
 } Generator;
 
+Generator* generator;
+
 static Generator* makeGenerator()
 {
     Generator* generator = safeMalloc(sizeof(Generator));
@@ -36,22 +38,22 @@ static void freeGenerator(Generator* generator)
     free(generator);
 }
 
-static char* makeLabel(Generator *generator)
+static char* makeLabel()
 {
     return format("L%d", generator->nextLabelNumber++);
 }
 
-static void emit(Generator* generator, char* code)
+static void emit(char* code)
 {
     appendStringBuilder(generator->builder, code);
 }
 
-static void emitLine(Generator* generator, char* line)
+static void emitLine(char* line)
 {
-    emit(generator, format("    %s\n", line));
+    emit(format("    %s\n", line));
 }
 
-static int getFreeRegister(Generator* generator)
+static int getFreeRegister()
 {
     for (int i = 0; i < REGISTERS_COUNT; i++) {
         if (generator->usedRegisters[i] == false) {
@@ -62,7 +64,7 @@ static int getFreeRegister(Generator* generator)
     }
 }
 
-static char* generateOperand(Generator* generator, Operand* operand)
+static char* operand(Operand* operand)
 {
     if (operand->type == OPERAND_INTEGER) {
         return format("$%d", operand->value.integer);
@@ -71,108 +73,107 @@ static char* generateOperand(Generator* generator, Operand* operand)
     Register* reg = operand->value.reg;
 
     if (reg->realNumber == -1) {
-        reg->realNumber = getFreeRegister(generator);
+        reg->realNumber = getFreeRegister();
     }
 
     return registers[reg->realNumber];
 }
 
-static void freeRegister(Generator* generator, int reg)
+static void freeRegister(int reg)
 {
     generator->usedRegisters[reg] = false;
 }
 
-static void freeOperand(Generator* generator, Operand* operand)
+static void freeOperand(Operand* operand)
 {
     if (operand->type == OPERAND_INTEGER) {
         return;
     }
 
-    freeRegister(generator, operand->value.reg->realNumber);
+    freeRegister(operand->value.reg->realNumber);
 }
 
-static void binaryOperation(Generator* generator, Instruction* instruction, char* operation)
+static void binaryOperation(Instruction* instruction, char* operation)
 {
     Operand* operand1 = VECTOR_GET(instruction->operands, 0);
     Operand* operand2 = VECTOR_GET(instruction->operands, 1);
 
-    char* value1 = generateOperand(generator, operand1);
-    char* value2 = generateOperand(generator, operand2);
-    char* resultReg = generateOperand(generator, VECTOR_GET(instruction->operands, 2));
+    char* value1 = operand(operand1);
+    char* value2 = operand(operand2);
+    char* resultReg = operand(VECTOR_GET(instruction->operands, 2));
 
-    emitLine(generator, format("mov %s, %s", value2, resultReg));
-    emitLine(generator, format("%s %s, %s", operation, value1, resultReg));
+    emitLine(format("mov %s, %s", value2, resultReg));
+    emitLine(format("%s %s, %s", operation, value1, resultReg));
 
-    freeOperand(generator, operand1);
-    freeOperand(generator, operand2);
+    freeOperand(operand1);
+    freeOperand(operand2);
 }
 
-static void generateInstruction(Generator* generator, Instruction* instruction)
+static void instruction(Instruction* instruction)
 {
     switch (instruction->type) {
         case IR_ADD:
-            binaryOperation(generator, instruction, "add");
+            binaryOperation(instruction, "add");
             break;
         case IR_SUBSTRACT:
-            binaryOperation(generator, instruction, "sub");
+            binaryOperation(instruction, "sub");
             break;
         case IR_MULTIPLY:
-            binaryOperation(generator, instruction, "imul");
+            binaryOperation(instruction, "imul");
             break;
         case IR_DIVIDE: {
             Operand* operand1 = VECTOR_GET(instruction->operands, 0);
             Operand* operand2 = VECTOR_GET(instruction->operands, 1);
 
-            char* value1 = generateOperand(generator, operand1);
-            char* value2 = generateOperand(generator, operand2);
-            char* resultReg = generateOperand(generator, VECTOR_GET(instruction->operands, 2));
+            char* value1 = operand(operand1);
+            char* value2 = operand(operand2);
+            char* resultReg = operand(VECTOR_GET(instruction->operands, 2));
 
-            emitLine(generator, format("mov %s, %%eax", value1));
-            emitLine(generator, format("mov %s, %%ebx", value2));
-            // emitLine(generator, format("cqo"));
-            emitLine(generator, format("idiv %%ebx", value2));
+            emitLine(format("mov %s, %%eax", value1));
+            emitLine(format("mov %s, %%ebx", value2));
+            emitLine(format("idiv %%ebx", value2));
 
             if (strcmp(resultReg, "%eax")) {
-                emitLine(generator, format("mov %%eax, %s", resultReg));
+                emitLine(format("mov %%eax, %s", resultReg));
             }
 
-            freeOperand(generator, operand1);
-            freeOperand(generator, operand2);
+            freeOperand(operand1);
+            freeOperand(operand2);
             break;
         }
         case IR_MODULO:
         case IR_MOVE:
         case IR_RETURN: {
-            char* source = generateOperand(generator, VECTOR_GET(instruction->operands, 0));
+            char* source = operand(VECTOR_GET(instruction->operands, 0));
 
             if (strcmp(source, "%eax")) {
-                emitLine(generator, format("mov %s, %%eax", source));
+                emitLine(format("mov %s, %%eax", source));
             }
             
-            emitLine(generator, "ret");
+            emitLine("ret");
             break;
         }
             
     }
 }
 
-static void generateProcedure(Generator* generator, Procedure* procedure)
+static void procedure(Procedure* procedure)
 {
-    char* label = makeLabel(generator);
+    char* label = makeLabel();
     setMap(generator->procedures, procedure->name, label);
-    emit(generator, format("%s:\n"));
+    emit(format("%s:\n", label));
 
     for (VECTOR_EACH(procedure->instructions)) {
-        generateInstruction(generator, VECTOR_GET(procedure->instructions, i));
+        instruction(VECTOR_GET(procedure->instructions, i));
     }
 }
 
 char* generateAssembly(IR* ir)
 {
-    Generator* generator = makeGenerator();
+    generator = makeGenerator();
 
     for (VECTOR_EACH(ir->procedures)) {
-        generateProcedure(generator, VECTOR_GET(ir->procedures, i));
+        procedure(VECTOR_GET(ir->procedures, i));
     }
 
     char* code = buildStringBuilder(generator->builder);

@@ -7,7 +7,10 @@ EXE := target/opal
 target:
 	mkdir target
 
-$(EXE): target $(OBJS)
+tmp:
+	mkdir tmp
+
+$(EXE): target tmp $(OBJS)
 	echo "Compiling executable..."
 	gcc -o $@ $(OBJS) -Wall
 

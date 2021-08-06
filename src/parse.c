@@ -24,8 +24,8 @@ typedef enum {
     PRECEDENCE_CALL,        // . ()
 } Precedence;
 
-typedef Node* (*PrefixParseFunction)(Parser* parser);
-typedef Node* (*InfixParseFunction)(Parser* parser, Node* left);
+typedef Node* (*PrefixParseFunction)();
+typedef Node* (*InfixParseFunction)(Node* left);
 
 typedef struct {
     Precedence precedence;
@@ -33,10 +33,12 @@ typedef struct {
     InfixParseFunction infix;
 } ParseRule;
 
-static Node* binary(Parser* parser, Node* left);
-static Node* primary(Parser* parser);
-static Node* grouping(Parser* parser);
-static Node* unary(Parser* parser);
+Parser* parser;
+
+static Node* binary(Node* left);
+static Node* primary();
+static Node* grouping();
+static Node* unary();
 
 ParseRule rules[] = {
     [TOKEN_PLUS]                = {PRECEDENCE_TERM, NULL, binary},
@@ -50,19 +52,19 @@ ParseRule rules[] = {
     [TOKEN_CIRCUMFLEX]          = {PRECEDENCE_POWER, NULL, binary},
 };
 
-static Token* peekAt(Parser* parser, int index)
+static Token* peekAt(int index)
 {
     return (Token*) VECTOR_GET(parser->tokens, index);
 }
 
-static Token* peek(Parser* parser)
+static Token* peek()
 {
-    return peekAt(parser, parser->index);
+    return peekAt(parser->index);
 }
 
-static Token* peekNext(Parser* parser)
+static Token* peekNext()
 {
-    return peekAt(parser, parser->index + 1);
+    return peekAt(parser->index + 1);
 }
 
 static Node* makeNode(NodeType type, int startIndex, int endIndex)
@@ -85,7 +87,7 @@ static Parser* newParser(Module* module, Vector* tokens)
     return parser;
 }
 
-static void advance(Parser* parser)
+static void advance()
 {
     parser->index++;
 }
@@ -95,38 +97,38 @@ static ParseRule* getRule(TokenType type)
     return &rules[type];
 }
 
-static void addErrorAtToken(Parser* parser, Token* token, char* message)
+static void addErrorAtToken(Token* token, char* message)
 {
     addErrorAt(parser->module, token->startIndex, token->endIndex, message);
 }
 
-static bool isAtEnd(Parser* parser)
+static bool isAtEnd()
 {
     return VECTOR_SIZE(parser->tokens) == parser->index + 1;
 }
 
-static Node* parsePrecedence(Parser* parser, Precedence precedence)
+static Node* parsePrecedence(Precedence precedence)
 {
-    PrefixParseFunction prefixFunction = getRule(peek(parser)->type)->prefix;
+    PrefixParseFunction prefixFunction = getRule(peek()->type)->prefix;
 
     if (prefixFunction == NULL) {
-        addErrorAtToken(parser, peek(parser), "Expect an expression.");
+        addErrorAtToken(peek(), "Expect an expression.");
 
         return NULL;
     }
 
-    Node* node = prefixFunction(parser);
+    Node* node = prefixFunction();
 
-    if (isAtEnd(parser)) {
+    if (isAtEnd()) {
         return node;
     }
 
-    while (precedence <= getRule(peekNext(parser)->type)->precedence) {
-        advance(parser);
-        InfixParseFunction infixFunction = getRule(peek(parser)->type)->infix;
-        node = infixFunction(parser, node);
+    while (precedence <= getRule(peekNext()->type)->precedence) {
+        advance();
+        InfixParseFunction infixFunction = getRule(peek()->type)->infix;
+        node = infixFunction(node);
         
-        if (isAtEnd(parser)) {
+        if (isAtEnd()) {
             return node;
         }
     }
@@ -134,9 +136,9 @@ static Node* parsePrecedence(Parser* parser, Precedence precedence)
     return node;
 }
 
-static Node* primary(Parser* parser)
+static Node* primary()
 {
-    Token* token = peek(parser);
+    Token* token = peek();
 
     switch (token->type) {
         case TOKEN_INTEGER: {
@@ -148,7 +150,7 @@ static Node* primary(Parser* parser)
     }
 }
 
-static NodeType arithmeticOperation(Parser* parser, Token* token)
+static NodeType arithmeticOperation(Token* token)
 {
     switch (token->type) {
         case TOKEN_PLUS:
@@ -166,22 +168,22 @@ static NodeType arithmeticOperation(Parser* parser, Token* token)
     }
 }
 
-static void consume(Parser* parser, TokenType type, char* message)
+static void consume(TokenType type, char* message)
 {
-    Token* token = peek(parser);
+    Token* token = peek();
 
     if (token->type != type) {
-        addErrorAtToken(parser, token, message);
+        addErrorAtToken(token, message);
     }
 }
 
-static Node* binary(Parser* parser, Node* left)
+static Node* binary(Node* left)
 {
-    Token* token = peek(parser);
-    NodeType type = arithmeticOperation(parser, token);
-    advance(parser);
+    Token* token = peek();
+    NodeType type = arithmeticOperation(token);
+    advance();
     ParseRule* rule = getRule(token->type);
-    Node* right = parsePrecedence(parser, rule->precedence + 1);
+    Node* right = parsePrecedence(rule->precedence + 1);
 
     if (right == NULL) {
         return left;
@@ -194,39 +196,39 @@ static Node* binary(Parser* parser, Node* left)
     return node;
 }
 
-static Node* expression(Parser* parser)
+static Node* expression()
 {
-    return parsePrecedence(parser, PRECEDENCE_ASSIGNMENT);
+    return parsePrecedence(PRECEDENCE_ASSIGNMENT);
 }
 
-static Node* unary(Parser* parser)
+static Node* unary()
 {
-    int startIndex = peek(parser)->startIndex;
-    advance(parser);
-    Node* inner = parsePrecedence(parser, PRECEDENCE_UNARY);
+    int startIndex = peek()->startIndex;
+    advance();
+    Node* inner = parsePrecedence(PRECEDENCE_UNARY);
     Node* node = makeNode(NODE_NEGATE, startIndex, inner->endIndex);
     node->children.node = inner;
 
     return node;
 }
 
-static Node* grouping(Parser* parser)
+static Node* grouping()
 {
-    int startIndex = peek(parser)->startIndex;
-    advance(parser);
-    Node* node = expression(parser);
+    int startIndex = peek()->startIndex;
+    advance();
+    Node* node = expression();
     node->startIndex = startIndex;
-    advance(parser);
-    consume(parser, TOKEN_RIGHT_PAREN, "Expect \")\" after an expression.");
-    node->endIndex = peek(parser)->endIndex;
+    advance();
+    consume(TOKEN_RIGHT_PAREN, "Expect \")\" after an expression.");
+    node->endIndex = peek()->endIndex;
 
     return node;
 }
 
 Node* parse(Module* module, Vector* tokens)
 {
-    Parser* parser = newParser(module, tokens);
-    Node* node = expression(parser);
+    parser = newParser(module, tokens);
+    Node* node = expression();
     free(parser);
 
     return node;
