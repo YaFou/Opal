@@ -11,6 +11,8 @@ typedef enum {
     NODE_MULTIPLY,
     NODE_DIVIDE,
     NODE_MODULO,
+    NODE_NEGATE,
+    NODE_POWER,
 
     // VALUES
     NODE_INTEGER
@@ -21,6 +23,7 @@ typedef struct Node {
 
     union {
         int integer;
+        struct Node* node;
 
         struct {
             struct Node* left;

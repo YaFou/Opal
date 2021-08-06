@@ -1,0 +1,8 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] Expect an expression.
+--> ./tests/expected_expression_right/main.oa - 1:4
+1 | 12+
+  |    ^
+

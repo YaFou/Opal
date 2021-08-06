@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "scan.h"
 #include <stdio.h>
+#include <math.h>
 
 void debugTokens(Vector* tokens)
 {
@@ -68,8 +69,15 @@ int interpretNode(Node* node)
         case NODE_MODULO:
             value = COMBINE(node, %);
             break;
+        case NODE_POWER:
+            value = pow(interpretNode(node->children.left), interpretNode(node->children.right));
+            break;
         case NODE_INTEGER:
             value = node->children.integer;
+            break;
+        case NODE_NEGATE:
+            value = -node->children.node->children.integer;
+            break;
     }
     #undef COMBINE
 

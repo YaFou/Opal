@@ -30,6 +30,7 @@ int main(int argc, char** argv)
     // SCANNING
     Vector* tokens = scan(module);
     throwErrorsIfNeeded();
+    // debugTokens(tokens);
 
     // PARSING
     Node* node = parse(module, tokens);
@@ -40,13 +41,13 @@ int main(int argc, char** argv)
     printf("%d", interpretNode(node));
 
     // GENERATING IR
-    IR* ir = generateIR(node);
-    freeNode(node);
+    // IR* ir = generateIR(node);
+    // freeNode(node);
     // printf("%s", dumpIR(ir));
 
     // GENERATING ASSEMBLY
-    char* assemblyCode = generateAssembly(ir);
-    freeIR(ir);
+    // char* assemblyCode = generateAssembly(ir);
+    // freeIR(ir);
     // printf("%s", assemblyCode);
 
     freeModule(module);
