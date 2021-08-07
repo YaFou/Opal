@@ -236,9 +236,18 @@ Node* parse(Module* module, Vector* tokens)
 
 void freeNode(Node* node)
 {
-    if (node->type != NODE_INTEGER) {
-        freeNode(node->children.left);
-        freeNode(node->children.right);
+    switch (node->type) {
+        case NODE_ADD:
+        case NODE_SUBSTRACT:
+        case NODE_MULTIPLY:
+        case NODE_DIVIDE:
+        case NODE_MODULO:
+            freeNode(node->children.left);
+            freeNode(node->children.right);
+            break;
+        case NODE_NEGATE:
+            freeNode(node->children.node);
+            break;
     }
     
     free(node);

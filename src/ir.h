@@ -10,7 +10,8 @@ typedef enum {
     IR_DIVIDE,
     IR_MODULO,
     IR_RETURN,
-    IR_MOVE
+    IR_MOVE,
+    IR_NEGATE,
 } InstructionType;
 
 typedef struct {
@@ -20,7 +21,7 @@ typedef struct {
 
 typedef enum {
     OPERAND_INTEGER,
-    OPERAND_REGISTER
+    OPERAND_REGISTER,
 } OperandType;
 
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
     char* name;
     Vector* instructions;
     int nextRegisterNumber;
+    int nextSubProcedureNumber;
 } Procedure;
 
 typedef struct {

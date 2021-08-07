@@ -38,25 +38,25 @@ int main(int argc, char** argv)
     throwErrorsIfNeeded();
     optimizeNode(module, node);
     throwErrorsIfNeeded();
-    // printf("%d", interpretNode(node));
+    printf("%d", interpretNode(node));
 
     // GENERATING IR
-    IR* ir = generateIR(node);
-    freeNode(node);
-    printf("%s\n", dumpIR(ir));
+    // IR* ir = generateIR(node);
+    // freeNode(node);
+    // printf("%s", dumpIR(ir));
 
     // GENERATING ASSEMBLY
-    char* assemblyCode = generateAssembly(ir);
-    freeIR(ir);
-    printf("%s", assemblyCode);
+    // char* assemblyCode = generateAssembly(ir);
+    // freeIR(ir);
+    // printf("%s", assemblyCode);
 
     freeModule(module);
 
-    FILE* generated = fopen("tmp/generated.s", "w");
-    fputs(assemblyCode, generated);
-    fclose(generated);
-    system("as tmp/generated.s -o tmp/generated.o");
-    system("ld tmp/generated.o -o tmp/program");
+    // FILE* generated = fopen("tmp/generated.s", "w");
+    // fputs(assemblyCode, generated);
+    // fclose(generated);
+    // system("as tmp/generated.s -o tmp/generated.o");
+    // system("ld tmp/generated.o -o tmp/program");
 
     return 0;
 }

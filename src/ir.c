@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include "stringbuilder.h"
 #include "util.h"
+#include "error.h"
+
+IR* ir;
+Procedure* procedure;
 
 static IR* makeIR()
 {
@@ -11,18 +15,24 @@ static IR* makeIR()
     return ir;
 }
 
-static Procedure* makeProcedure(IR* ir, char* name)
+static Procedure* makeProcedure(char* name)
 {
     Procedure* procedure = safeMalloc(sizeof(Procedure));
     procedure->name = name;
     procedure->instructions = newVector();
     procedure->nextRegisterNumber = 0;
+    procedure->nextSubProcedureNumber = 0;
     pushVector(ir->procedures, procedure);
 
     return procedure;
 }
 
-static Instruction* makeInstruction(Procedure* procedure, InstructionType type)
+static Procedure* makeSubProcedure(Procedure* procedure)
+{
+    return makeProcedure(format("%s:%d", procedure->name, procedure->nextSubProcedureNumber++));
+}
+
+static Instruction* makeInstruction(InstructionType type)
 {
     Instruction* instruction = safeMalloc(sizeof(Instruction));
     instruction->type = type;
@@ -32,36 +42,43 @@ static Instruction* makeInstruction(Procedure* procedure, InstructionType type)
     return instruction;
 }
 
-static void makeInstruction0(Procedure* procedure, InstructionType type)
+static void makeInstruction0(InstructionType type)
 {
-    makeInstruction(procedure, type);
+    makeInstruction(type);
 }
 
-static void makeInstruction1(Procedure* procedure, InstructionType type, Operand* operand)
+static void makeInstruction1(InstructionType type, Operand* operand)
 {
-    Instruction* instruction = makeInstruction(procedure, type);
+    Instruction* instruction = makeInstruction(type);
     pushVector(instruction->operands, operand);
 }
 
-static void makeInstruction2(Procedure* procedure, InstructionType type, Operand* operand1, Operand* operand2)
+static void makeInstruction2(InstructionType type, Operand* operand1, Operand* operand2)
 {
-    Instruction* instruction = makeInstruction(procedure, type);
+    Instruction* instruction = makeInstruction(type);
     pushVector(instruction->operands, operand1);
     pushVector(instruction->operands, operand2);
 }
 
-static void makeInstruction3(Procedure* procedure, InstructionType type, Operand* operand1, Operand* operand2, Operand* operand3)
+static void makeInstruction3(InstructionType type, Operand* operand1, Operand* operand2, Operand* operand3)
 {
-    Instruction* instruction = makeInstruction(procedure, type);
+    Instruction* instruction = makeInstruction(type);
     pushVector(instruction->operands, operand1);
     pushVector(instruction->operands, operand2);
     pushVector(instruction->operands, operand3);
 }
 
-static Operand* makeOperandFromInteger(int integer)
+static Operand* makeOperand(OperandType type)
 {
     Operand* operand = safeMalloc(sizeof(Operand));
-    operand->type = OPERAND_INTEGER;
+    operand->type = type;
+    
+    return operand;
+}
+
+static Operand* makeOperandFromInteger(int integer)
+{
+    Operand* operand = makeOperand(OPERAND_INTEGER);
     operand->value.integer = integer;
 
     return operand;
@@ -69,14 +86,13 @@ static Operand* makeOperandFromInteger(int integer)
 
 static Operand* makeOperandFromRegister(Register* reg)
 {
-    Operand* operand = safeMalloc(sizeof(Operand));
-    operand->type = OPERAND_REGISTER;
+    Operand* operand = makeOperand(OPERAND_REGISTER);
     operand->value.reg = reg;
 
     return operand;
 }
 
-static Operand* makeRegister(Procedure* procedure)
+static Operand* makeRegister()
 {
     Register* reg = safeMalloc(sizeof(Register));
     reg->virtualNumber = procedure->nextRegisterNumber++;
@@ -85,58 +101,56 @@ static Operand* makeRegister(Procedure* procedure)
     return makeOperandFromRegister(reg);
 }
 
-static Operand* generateBinaryOperation(Procedure* procedure, Node* node)
+static Operand* generateNode(Node* node);
+
+static Operand* binaryOperation(Node* node, InstructionType type)
 {
-    Operand* returnReg = makeRegister(procedure);
+    Operand* value1 = generateNode(node->children.left);
+    Operand* value2 = generateNode(node->children.right);
+    Operand* result = makeRegister(procedure);
+    makeInstruction3(type, value1, value2, result);
 
-    if (node->type == NODE_INTEGER) {
-        makeInstruction2(procedure, IR_MOVE, makeOperandFromInteger(node->children.integer), returnReg);
+    return result;
+}
 
-        return returnReg;
-    }
-
-    Node* leftNode = node->children.left;
-    Node* rightNode = node->children.right;
-    Operand* leftReg = leftNode->type == NODE_INTEGER ? makeOperandFromInteger(leftNode->children.integer) : generateBinaryOperation(procedure, leftNode);
-    Operand* rightReg = rightNode->type == NODE_INTEGER ? makeOperandFromInteger(rightNode->children.integer) : generateBinaryOperation(procedure, rightNode);
-    InstructionType type;
-
+static Operand* generateNode(Node* node)
+{
     switch (node->type) {
         case NODE_ADD:
-            type = IR_ADD;
-            break;
+            return binaryOperation(node, IR_ADD);
         case NODE_SUBSTRACT:
-            type = IR_SUBSTRACT;
-            break;
+            return binaryOperation(node, IR_SUBSTRACT);
         case NODE_MULTIPLY:
-            type = IR_MULTIPLY;
-            break;
+            return binaryOperation(node, IR_MULTIPLY);
         case NODE_DIVIDE:
-            type = IR_DIVIDE;
-            break;
+            return binaryOperation(node, IR_DIVIDE);
         case NODE_MODULO:
-            type = IR_MODULO;
-            break;
+            return binaryOperation(node, IR_MODULO);
+        case NODE_NEGATE: {
+            Operand* value = generateNode(node->children.node);
+            Operand* result = makeRegister(procedure);
+            makeInstruction2(IR_NEGATE, value, result);
+
+            return result;
+        }
+        case NODE_INTEGER: {
+            Operand* value = makeOperandFromInteger(node->children.integer);
+            Operand* result = makeRegister(procedure);
+            makeInstruction2(IR_MOVE, value, result);
+
+            return result;
+        }
+        case NODE_POWER:
+            throwFatal("Raised a value to a power is not supported yet.");
     }
-
-    makeInstruction3(procedure, type, leftReg, rightReg, returnReg);
-
-    return returnReg;
 }
 
 IR* generateIR(Node* node)
 {
-    IR* ir = makeIR();
-    Procedure* procedure = makeProcedure(ir, "main");
-
-    if (node->type == NODE_INTEGER) {
-        makeInstruction1(procedure, IR_RETURN, makeOperandFromInteger(node->children.integer));
-
-        return ir;
-    }
-
-    Operand* reg = generateBinaryOperation(procedure, node);
-    makeInstruction1(procedure, IR_RETURN, reg);
+    ir = makeIR();
+    procedure = makeProcedure("main");
+    Operand* reg = generateNode(node);
+    makeInstruction1(IR_RETURN, reg);
 
     return ir;
 }
@@ -171,6 +185,8 @@ void freeIR(IR* ir)
     free(ir);
 }
 
+StringBuilder* builder;
+
 static char* dumpInstructionType(InstructionType type)
 {
     switch (type) {
@@ -188,48 +204,57 @@ static char* dumpInstructionType(InstructionType type)
             return "RET";
         case IR_MOVE:
             return "MOV";
+        case IR_NEGATE:
+            return "NEG";
     }
 }
 
-static void dumpInstruction(StringBuilder* builder, Instruction* instruction)
+static void emit(char* code)
 {
-    appendStringBuilder(builder, format("    %s ", dumpInstructionType(instruction->type)));
+    appendStringBuilder(builder, code);
+}
+
+static void dumpInstruction(Instruction* instruction)
+{
+    emit(format("    %s ", dumpInstructionType(instruction->type)));
     
     for (VECTOR_EACH(instruction->operands)) {
         Operand* operand = VECTOR_GET(instruction->operands, i);
 
         switch (operand->type) {
             case OPERAND_INTEGER:
-                appendStringBuilder(builder, format("%d", operand->value.integer));
+                emit(format("%d", operand->value.integer));
                 break;
             case OPERAND_REGISTER:
-                appendStringBuilder(builder, format("%%%d", operand->value.reg->virtualNumber));
+                emit(format("%%%d", operand->value.reg->virtualNumber));
                 break;
         }
 
         if (i != VECTOR_SIZE(instruction->operands) - 1) {
-            appendStringBuilder(builder, ", ");
+            emit(", ");
         }
     }
 
-    addStringBuilder(builder, '\n');
+    emit("\n");
 }
 
-static void dumpProcedure(StringBuilder* builder, Procedure* procedure)
+static void dumpProcedure(Procedure* procedure)
 {
-    appendStringBuilder(builder, format("%s\n", procedure->name));
+    emit(format("%s\n", procedure->name));
 
     for (VECTOR_EACH(procedure->instructions)) {
-        dumpInstruction(builder, VECTOR_GET(procedure->instructions, i));
+        dumpInstruction(VECTOR_GET(procedure->instructions, i));
     }
+
+    emit("\n");
 }
 
 char* dumpIR(IR* ir)
 {
-    StringBuilder* builder = newStringBuilder();
+    builder = newStringBuilder();
 
     for (VECTOR_EACH(ir->procedures)) {
-        dumpProcedure(builder, VECTOR_GET(ir->procedures, i));
+        dumpProcedure(VECTOR_GET(ir->procedures, i));
     }
 
     char* dumpedIR = buildStringBuilder(builder);

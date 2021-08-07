@@ -5,8 +5,9 @@
 #include <string.h>
 
 #define REGISTERS_COUNT 4
+#define OPERAND(instruction, index) VECTOR_GET(instruction->operands, index)
 
-char* registers[REGISTERS_COUNT] = {"%eax", "%ebx", "%cbx", "%dbx"};
+char* registers[REGISTERS_COUNT] = {"%eax", "%ebx", "%ecx", "%edx"};
 
 typedef struct {
     int nextLabelNumber;
@@ -95,18 +96,58 @@ static void freeOperand(Operand* operand)
 
 static void binaryOperation(Instruction* instruction, char* operation)
 {
-    Operand* operand1 = VECTOR_GET(instruction->operands, 0);
-    Operand* operand2 = VECTOR_GET(instruction->operands, 1);
+    Operand* operand1 = OPERAND(instruction, 0);
+    Operand* operand2 = OPERAND(instruction, 1);
 
     char* value1 = operand(operand1);
     char* value2 = operand(operand2);
-    char* resultReg = operand(VECTOR_GET(instruction->operands, 2));
+    char* resultReg = operand(OPERAND(instruction, 2));
 
     emitLine(format("mov %s, %s", value2, resultReg));
     emitLine(format("%s %s, %s", operation, value1, resultReg));
 
     freeOperand(operand1);
     freeOperand(operand2);
+}
+
+static void divide(Instruction* instruction)
+{
+    Operand* operand1 = OPERAND(instruction, 0);
+    Operand* operand2 = OPERAND(instruction, 1);
+
+    char* value1 = operand(operand1);
+    char* value2 = operand(operand2);
+    char* resultReg = operand(OPERAND(instruction, 2));
+
+    emitLine(format("mov %s, %%eax", value1));
+    emitLine(format("mov %s, %%ebx", value2));
+    emitLine(format("idiv %%ebx", value2));
+
+    if (strcmp(resultReg, "%eax")) {
+        emitLine(format("mov %%eax, %s", resultReg));
+    }
+
+    freeOperand(operand1);
+    freeOperand(operand2);
+}
+
+static void move(Instruction* instruction)
+{
+    Operand* source = OPERAND(instruction, 0);
+    char* destination = operand(OPERAND(instruction, 1));
+    emitLine(format("mov %s, %s", operand(source), destination));
+    freeOperand(source);
+}
+
+static void ret(Instruction* instruction)
+{
+    char* source = operand(OPERAND(instruction, 0));
+
+    if (strcmp(source, "%eax")) {
+        emitLine(format("mov %s, %%eax", source));
+    }
+    
+    emitLine("ret");
 }
 
 static void instruction(Instruction* instruction)
@@ -121,39 +162,17 @@ static void instruction(Instruction* instruction)
         case IR_MULTIPLY:
             binaryOperation(instruction, "imul");
             break;
-        case IR_DIVIDE: {
-            Operand* operand1 = VECTOR_GET(instruction->operands, 0);
-            Operand* operand2 = VECTOR_GET(instruction->operands, 1);
-
-            char* value1 = operand(operand1);
-            char* value2 = operand(operand2);
-            char* resultReg = operand(VECTOR_GET(instruction->operands, 2));
-
-            emitLine(format("mov %s, %%eax", value1));
-            emitLine(format("mov %s, %%ebx", value2));
-            emitLine(format("idiv %%ebx", value2));
-
-            if (strcmp(resultReg, "%eax")) {
-                emitLine(format("mov %%eax, %s", resultReg));
-            }
-
-            freeOperand(operand1);
-            freeOperand(operand2);
+        case IR_DIVIDE:
+            divide(instruction);
             break;
-        }
         case IR_MODULO:
-        case IR_MOVE:
-        case IR_RETURN: {
-            char* source = operand(VECTOR_GET(instruction->operands, 0));
-
-            if (strcmp(source, "%eax")) {
-                emitLine(format("mov %s, %%eax", source));
-            }
-            
-            emitLine("ret");
             break;
-        }
-            
+        case IR_MOVE:
+            move(instruction);
+            break;
+        case IR_RETURN:
+            ret(instruction);
+            break; 
     }
 }
 
