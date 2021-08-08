@@ -3,6 +3,11 @@
 #include "scan.h"
 #include "error.h"
 #include <math.h>
+#include <string.h>
+
+#define TYPE_INTEGER "<integer>"
+#define TYPE_BOOLEAN "<boolean>"
+#define TYPE_NULL "<null>"
 
 typedef struct {
     Module* module;
@@ -50,6 +55,9 @@ ParseRule rules[] = {
     [TOKEN_INTEGER]             = {PRECEDENCE_NONE, primary, NULL},
     [TOKEN_EOF]                 = {PRECEDENCE_NONE, NULL, NULL},
     [TOKEN_CIRCUMFLEX]          = {PRECEDENCE_POWER, NULL, binary},
+    [TOKEN_FALSE]               = {PRECEDENCE_NONE, primary, NULL},
+    [TOKEN_TRUE]                = {PRECEDENCE_NONE, primary, NULL},
+    [TOKEN_NULL]                = {PRECEDENCE_NONE, primary, NULL},
 };
 
 static Token* peekAt(int index)
@@ -144,6 +152,27 @@ static Node* primary()
         case TOKEN_INTEGER: {
             Node* node = makeNode(NODE_INTEGER, token->startIndex, token->endIndex);
             node->children.integer = token->value.integer;
+            node->valueType = TYPE_INTEGER;
+
+            return node;
+        }
+        case TOKEN_FALSE: {
+            Node* node = makeNode(NODE_BOOLEAN, token->startIndex, token->endIndex);
+            node->children.boolean = false;
+            node->valueType = TYPE_BOOLEAN;
+
+            return node;
+        }
+        case TOKEN_TRUE: {
+            Node* node = makeNode(NODE_BOOLEAN, token->startIndex, token->endIndex);
+            node->children.boolean = true;
+            node->valueType = TYPE_BOOLEAN;
+
+            return node;
+        }
+        case TOKEN_NULL: {
+            Node* node = makeNode(NODE_NULL, token->startIndex, token->endIndex);
+            node->valueType = TYPE_NULL;
 
             return node;
         }
@@ -177,6 +206,29 @@ static void consume(TokenType type, char* message)
     }
 }
 
+static bool isSameType(Node* node, char* type)
+{
+    return !strcmp(node->valueType, type);
+}
+
+static void checkTypes(Node* node)
+{
+    Node* left = node->children.left;
+    Node* right = node->children.right;
+    
+    if (left->valueType == NULL || right->valueType == NULL) {
+        return;
+    }
+
+    if (!isSameType(left, TYPE_INTEGER) || !isSameType(right, TYPE_INTEGER)) {
+        addErrorAt(parser->module, node->startIndex, node->endIndex, "Types \"%s\" and \"%s\" are incompatible in a binary operation.", left->valueType, right->valueType);
+
+        return;
+    }
+
+    node->valueType = TYPE_INTEGER;
+}
+
 static Node* binary(Node* left)
 {
     Token* token = peek();
@@ -192,6 +244,7 @@ static Node* binary(Node* left)
     Node* node = makeNode(type, left->startIndex, right->endIndex);
     node->children.left = left;
     node->children.right = right;
+    checkTypes(node);
 
     return node;
 }

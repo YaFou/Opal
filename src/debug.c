@@ -2,6 +2,8 @@
 #include "scan.h"
 #include <stdio.h>
 #include <math.h>
+#include "map.h"
+#include "util.h"
 
 void debugTokens(Vector* tokens)
 {
@@ -82,4 +84,83 @@ int interpretNode(Node* node)
     #undef COMBINE
 
     return value;
+}
+
+#define REGISTER_NUMBER(reg) format("%d", reg->virtualNumber)
+
+Procedure* procedure;
+Map* registers;
+
+static int loadOperand(Instruction* instruction, int index)
+{
+    Operand* operand = VECTOR_GET(instruction->operands, index);
+
+    switch (operand->type) {
+        case OPERAND_INTEGER:
+            return operand->value.integer;
+        case OPERAND_REGISTER: {
+            return *((int*) getMap(registers, REGISTER_NUMBER(operand->value.reg)));
+        }
+    }
+}
+
+static void storeOperand(Instruction* instruction, int index, int value)
+{
+    Operand* operand = VECTOR_GET(instruction->operands, index);
+    int* pointer = safeMalloc(sizeof(int));
+    *pointer = value;
+    setMap(registers, REGISTER_NUMBER(operand->value.reg), pointer);
+}
+
+static void binaryOperation(Instruction* instruction)
+{
+    switch (instruction->type) {
+        
+    }
+}
+
+static void interpretProcedure()
+{
+    for (VECTOR_EACH(procedure->instructions)) {
+        Instruction* instruction = VECTOR_GET(procedure->instructions, i);
+        
+        switch (instruction->type) {
+            #define STORE(operator) storeOperand(instruction, 2, loadOperand(instruction, 0) operator loadOperand(instruction, 1))
+            case IR_ADD:
+                STORE(+);
+                break;
+            case IR_SUBSTRACT:
+                STORE(-);
+                break;
+            case IR_MULTIPLY:
+                STORE(*);
+                break;
+            case IR_DIVIDE:
+                STORE(/);
+                break;
+            case IR_MODULO:
+                STORE(%);
+                break;
+            #undef STORE
+
+            case IR_RETURN: {
+                printf("%d", loadOperand(instruction, 0));
+                break;
+            }
+            case IR_MOVE: {
+                int value = loadOperand(instruction, 0);
+                storeOperand(instruction, 1, value);
+                break;
+            }
+        }
+    }
+}
+
+void interpretIR(IR* ir)
+{
+    registers = newMap();
+    procedure = VECTOR_GET(ir->procedures, 0);
+    interpretProcedure();
+
+    freeMap(registers);
 }

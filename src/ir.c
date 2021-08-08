@@ -142,6 +142,13 @@ static Operand* generateNode(Node* node)
         }
         case NODE_POWER:
             throwFatal("Raised a value to a power is not supported yet.");
+        case NODE_BOOLEAN: {
+            Operand* value = makeOperandFromInteger(node->children.boolean);
+            Operand* result = makeRegister(procedure);
+            makeInstruction2(IR_MOVE, value, result);
+
+            return result;
+        }
     }
 }
 

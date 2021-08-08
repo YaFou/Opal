@@ -1,0 +1,13 @@
+Compilation failed.
+2 errors have occured.
+
+[ERROR] Types "<null>" and "<boolean>" are incompatible in a binary operation.
+--> ./tests/incompatible_types_binary/main.oa - 1:1
+1 | null+true-false*1
+  | ^^^^^^^^^
+
+[ERROR] Types "<boolean>" and "<integer>" are incompatible in a binary operation.
+--> ./tests/incompatible_types_binary/main.oa - 1:11
+1 | null+true-false*1
+  |           ^^^^^^^
+

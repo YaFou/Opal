@@ -38,16 +38,17 @@ int main(int argc, char** argv)
     throwErrorsIfNeeded();
     optimizeNode(module, node);
     throwErrorsIfNeeded();
-    printf("%d", interpretNode(node));
+    // printf("%d", interpretNode(node));
 
     // GENERATING IR
-    // IR* ir = generateIR(node);
-    // freeNode(node);
+    IR* ir = generateIR(node);
+    freeNode(node);
     // printf("%s", dumpIR(ir));
+    interpretIR(ir);
 
     // GENERATING ASSEMBLY
     // char* assemblyCode = generateAssembly(ir);
-    // freeIR(ir);
+    freeIR(ir);
     // printf("%s", assemblyCode);
 
     freeModule(module);

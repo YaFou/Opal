@@ -3,6 +3,7 @@
 
 #include "module.h"
 #include "vector.h"
+#include <stdbool.h>
 
 typedef enum {
     // INSTRUCTIONS
@@ -15,7 +16,9 @@ typedef enum {
     NODE_POWER,
 
     // VALUES
-    NODE_INTEGER
+    NODE_INTEGER,
+    NODE_BOOLEAN,
+    NODE_NULL,
 } NodeType;
 
 typedef struct Node {
@@ -24,6 +27,7 @@ typedef struct Node {
     union {
         int integer;
         struct Node* node;
+        bool boolean;
 
         struct {
             struct Node* left;
@@ -33,6 +37,7 @@ typedef struct Node {
 
     int startIndex;
     int endIndex;
+    char* valueType;
 } Node;
 
 Node* parse(Module* module, Vector* tokens);

@@ -38,6 +38,7 @@ typedef enum {
     TOKEN_LEFT_BRACKET,     // [
     TOKEN_RIGHT_BRACKET,    // ]
     TOKEN_HASHTAG,          // #
+    TOKEN_COLON,            // :
 
     // VALUES
     TOKEN_INTEGER,
@@ -55,11 +56,14 @@ typedef enum {
     TOKEN_DO,
     TOKEN_ELSE,
     TOKEN_ENUM,
+    TOKEN_FALSE,
     TOKEN_FOR,
     TOKEN_IF,
     TOKEN_INTERFACE,
     TOKEN_LOOP,
+    TOKEN_NULL,
     TOKEN_RETURN,
+    TOKEN_TRUE,
     TOKEN_VAR,
     TOKEN_WHILE,
 

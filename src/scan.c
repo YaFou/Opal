@@ -1,4 +1,5 @@
 #include "scan.h"
+#include "scan.h"
 #include "util.h"
 #include <string.h>
 #include "stringbuilder.h"
@@ -180,6 +181,9 @@ static Token* makeKeyword(char* keyword)
             }
             break;
         case 'f':
+            if (!strcmp(keyword, "false")) {
+                return makeToken(TOKEN_FALSE);
+            }
             if (!strcmp(keyword, "for")) {
                 return makeToken(TOKEN_FOR);
             }
@@ -197,9 +201,19 @@ static Token* makeKeyword(char* keyword)
                 return makeToken(TOKEN_LOOP);
             }
             break;
+        case 'n':
+            if (!strcmp(keyword, "null")) {
+                return makeToken(TOKEN_NULL);
+            }
+            break;
         case 'r':
             if (!strcmp(keyword, "return")) {
                 return makeToken(TOKEN_RETURN);
+            }
+            break;
+        case 't':
+            if (!strcmp(keyword, "true")) {
+                return makeToken(TOKEN_TRUE);
             }
             break;
         case 'v':
@@ -288,6 +302,34 @@ static Token* makeString()
     return token;
 }
 
+static Token* singleLineComment()
+{
+    advance();
+
+    while (peek() != '\n' && !isAtEnd()) {
+        advance();
+    }
+
+    return makeToken(TOKEN_NONE);
+}
+
+static Token* multipleLinesComment()
+{
+    advance();
+
+    while (!isAtEnd()) {
+        if (peek() == '*' && peekNext() == '/') {
+            advance();
+
+            break;
+        }
+
+        advance();
+    }
+
+    return makeToken(TOKEN_NONE);
+}
+
 static Token* getToken()
 {
     skipWhitespaces();
@@ -310,7 +352,21 @@ static Token* getToken()
         case '+': return makeToken(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
         case '-': return makeToken(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
         case '*': return makeToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
-        case '/': return makeToken(match('/') ? TOKEN_NONE : match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        case '/': {
+            if (match('=')) {
+                return makeToken(TOKEN_SLASH_EQUAL);
+            }
+
+            if (match('/')) {
+                return singleLineComment();
+            }
+
+            if (match('*')) {
+                return multipleLinesComment();
+            }
+
+            return makeToken(TOKEN_SLASH);
+        }
         case '(': return makeToken(TOKEN_LEFT_PAREN);
         case ')': return makeToken(TOKEN_RIGHT_PAREN);
         case '{': return makeToken(TOKEN_LEFT_BRACE);
@@ -332,6 +388,7 @@ static Token* getToken()
         case '\'': return makeChar();
         case '"': return makeString();
         case '#': return makeToken(TOKEN_HASHTAG);
+        case ':': return makeToken(TOKEN_COLON);
     }
 
     addErrorAt(scanner->module, scanner->currentIndex, scanner->currentIndex + 1, "Unexpected character \"%c\".", c);
