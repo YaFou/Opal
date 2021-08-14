@@ -149,6 +149,16 @@ static Operand* generateNode(Node* node)
 
             return result;
         }
+        case NODE_STATEMENTS: {
+            Operand* lastOperand;
+
+            for (VECTOR_EACH(node->children.nodes)) {
+                Node* child = VECTOR_GET(node->children.nodes, i);
+                lastOperand = generateNode(child);
+            }
+
+            return lastOperand;
+        }
     }
 }
 

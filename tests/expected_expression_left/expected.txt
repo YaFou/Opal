@@ -3,6 +3,6 @@ Compilation failed.
 
 [ERROR] Expect an expression.
 --> ./tests/expected_expression_left/main.oa - 1:1
-1 | +12
+1 | +;
   | ^
 

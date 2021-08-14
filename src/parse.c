@@ -112,7 +112,7 @@ static void addErrorAtToken(Token* token, char* message)
 
 static bool isAtEnd()
 {
-    return VECTOR_SIZE(parser->tokens) == parser->index + 1;
+    return VECTOR_SIZE(parser->tokens) <= parser->index + 1;
 }
 
 static Node* parsePrecedence(Precedence precedence)
@@ -197,8 +197,19 @@ static NodeType arithmeticOperation(Token* token)
     }
 }
 
+static Token* last()
+{
+    return VECTOR_LAST(parser->tokens);
+}
+
 static void consume(TokenType type, char* message)
 {
+    if (isAtEnd()) {
+        addErrorAtToken(last(), message);
+
+        return;
+    }
+
     Token* token = peek();
 
     if (token->type != type) {
@@ -278,11 +289,42 @@ static Node* grouping()
     return node;
 }
 
+static Node* statement()
+{
+    Node* node = expression();
+    advance();
+    consume(TOKEN_SEMILICON, "Expect \";\" after a statement.");
+
+    if (node == NULL) {
+        return NULL;
+    }
+
+    Token* token = isAtEnd() ? last() : peek();
+    node->endIndex = token->endIndex;
+
+    return node;
+}
+
 Node* parse(Module* module, Vector* tokens)
 {
     parser = newParser(module, tokens);
-    Node* node = expression();
+    Vector* statements = newVector();
+
+    while (!isAtEnd()) {
+        pushVector(statements, statement());
+        advance();
+    }
+
     free(parser);
+    Node* first = VECTOR_FIRST(statements);
+    Node* last = VECTOR_LAST(statements);
+    
+    if (first == NULL || last == NULL) {
+        return NULL;
+    }
+
+    Node* node = makeNode(NODE_STATEMENTS, first->startIndex, last->endIndex);
+    node->children.nodes = statements;
 
     return node;
 }
@@ -301,6 +343,14 @@ void freeNode(Node* node)
         case NODE_NEGATE:
             freeNode(node->children.node);
             break;
+        case NODE_STATEMENTS: {
+            for (VECTOR_EACH(node->children.nodes)) {
+                Node* child = VECTOR_GET(node->children.nodes, i);
+                freeNode(child);
+            }
+
+            freeVector(node->children.nodes);
+        }
     }
     
     free(node);
@@ -309,6 +359,15 @@ void freeNode(Node* node)
 void optimizeNode(Module* module, Node* node)
 {
     if (node->type == NODE_INTEGER) {
+        return;
+    }
+
+    if (node->type == NODE_STATEMENTS) {
+        for (VECTOR_EACH(node->children.nodes)) {
+            Node* child = VECTOR_GET(node->children.nodes, i);
+            optimizeNode(module, child);
+        }
+
         return;
     }
 

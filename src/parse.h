@@ -6,6 +6,9 @@
 #include <stdbool.h>
 
 typedef enum {
+    // STRUCTS
+    NODE_STATEMENTS,
+
     // INSTRUCTIONS
     NODE_ADD,
     NODE_SUBSTRACT,
@@ -28,6 +31,7 @@ typedef struct Node {
         int integer;
         struct Node* node;
         bool boolean;
+        Vector* nodes;
 
         struct {
             struct Node* left;
