@@ -1,0 +1,2 @@
+const constant = 12+34;
+constant;

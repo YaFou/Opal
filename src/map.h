@@ -3,6 +3,9 @@
 
 #include "vector.h"
 
+#define MAP_EACH(map) int i = 0; i < VECTOR_SIZE(map->keys); i++
+#define MAP_GET_INDEX(map, index) VECTOR_GET(map->values, index)
+
 typedef struct {
     Vector* keys;
     Vector* values;

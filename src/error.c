@@ -102,7 +102,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
             return;
         }
 
-        if (isWhitespace(c)) {
+        if (isWhitespace(c) && c != ' ') {
             continue;
         }
 
@@ -135,7 +135,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
             break;
         }
 
-        if (isWhitespace(c)) {
+        if (isWhitespace(c) && c != ' ') {
             continue;
         }
 
@@ -156,7 +156,7 @@ void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...
                 break;
             }
 
-            if (isWhitespace(c)) {
+            if (isWhitespace(c) && c != ' ') {
                 continue;
             }
 

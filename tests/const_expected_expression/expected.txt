@@ -1,0 +1,8 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] Expect an expression.
+--> ./tests/const_expected_expression/main.oa - 1:18
+1 | const constant = ;
+  |                  ^
+

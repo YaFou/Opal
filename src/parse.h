@@ -4,10 +4,13 @@
 #include "module.h"
 #include "vector.h"
 #include <stdbool.h>
+#include "symbol.h"
 
 typedef enum {
     // STRUCTS
     NODE_STATEMENTS,
+    NODE_ASSIGNMENT,
+    NODE_LOAD,
 
     // INSTRUCTIONS
     NODE_ADD,
@@ -32,10 +35,16 @@ typedef struct Node {
         struct Node* node;
         bool boolean;
         Vector* nodes;
+        Variable* variable;
 
         struct {
             struct Node* left;
             struct Node* right;
+        };
+
+        struct {
+            Variable* variableAssignment;
+            struct Node* variableValue;
         };
     } children;
 

@@ -44,8 +44,17 @@ void debugTokens(Vector* tokens)
             case TOKEN_EOF:
                 printf("EOF\n");
                 break;
+            case TOKEN_CONST:
+                printf("CONST\n");
+                break;
+            case TOKEN_IDENTIFIER:
+                printf("IDENTIFIER | %s\n", token->value.string);
+                break;
+            case TOKEN_EQUAL:
+                printf("EQUAL\n");
+                break;
             default:
-                printf("UNKNOWN\n");
+                printf("UNKNOWN | %d\n", token->type);
         }
     }
 }

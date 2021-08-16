@@ -3,11 +3,11 @@ Compilation failed.
 
 [ERROR] Expect an expression.
 --> ./tests/expected_expression_right/main.oa - 1:4
-1 | 12+
+1 | 12+;
   |    ^
 
 [ERROR] Expect ";" after a statement.
 --> ./tests/expected_expression_right/main.oa - 1:4
-1 | 12+
-  |    ^
+1 | 12+;
+  |    ^^
 

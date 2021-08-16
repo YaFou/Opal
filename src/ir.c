@@ -3,6 +3,7 @@
 #include "stringbuilder.h"
 #include "util.h"
 #include "error.h"
+#include "symbol.h"
 
 IR* ir;
 Procedure* procedure;
@@ -11,6 +12,7 @@ static IR* makeIR()
 {
     IR* ir = safeMalloc(sizeof(IR));
     ir->procedures = newVector();
+    ir->offset = 0;
 
     return ir;
 }
@@ -92,6 +94,14 @@ static Operand* makeOperandFromRegister(Register* reg)
     return operand;
 }
 
+static Operand* makeOperandFromMemory(int offset)
+{
+    Operand* operand = makeOperand(OPERAND_MEMORY);
+    operand->value.integer = offset;
+
+    return operand;
+}
+
 static Operand* makeRegister()
 {
     Register* reg = safeMalloc(sizeof(Register));
@@ -158,6 +168,28 @@ static Operand* generateNode(Node* node)
             }
 
             return lastOperand;
+        }
+        case NODE_ASSIGNMENT: {
+            Variable* variable = node->children.variableAssignment;
+            variable->offset = ir->offset;
+            ir->offset += 4;
+            Node* value = node->children.variableValue;
+            Operand* destination = makeOperandFromMemory(variable->offset);
+
+            if (value != NULL) {
+                Operand* source = generateNode(value);
+                makeInstruction2(IR_MOVE, source, destination);
+            }
+
+            return destination;
+        }
+        case NODE_LOAD: {
+            Variable* variable = node->children.variable;
+            Operand* source = makeOperandFromMemory(variable->offset);
+            Operand* destination = makeRegister();
+            makeInstruction2(IR_MOVE, source, destination);
+
+            return destination;
         }
     }
 }
@@ -244,6 +276,9 @@ static void dumpInstruction(Instruction* instruction)
                 break;
             case OPERAND_REGISTER:
                 emit(format("%%%d", operand->value.reg->virtualNumber));
+                break;
+            case OPERAND_MEMORY:
+                emit(format("$%d", operand->value.integer));
                 break;
         }
 

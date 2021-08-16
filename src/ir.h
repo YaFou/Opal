@@ -22,6 +22,7 @@ typedef struct {
 typedef enum {
     OPERAND_INTEGER,
     OPERAND_REGISTER,
+    OPERAND_MEMORY,
 } OperandType;
 
 typedef struct {
@@ -46,6 +47,7 @@ typedef struct {
 
 typedef struct {
     Vector* procedures;
+    int offset;
 } IR;
 
 IR* generateIR(Node* node);

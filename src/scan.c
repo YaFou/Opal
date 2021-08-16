@@ -333,6 +333,7 @@ static Token* multipleLinesComment()
 static Token* getToken()
 {
     skipWhitespaces();
+    scanner->startIndex = scanner->currentIndex;
 
     if (isAtEnd()) {
         return makeToken(TOKEN_EOF);
@@ -403,7 +404,6 @@ Vector* scan(Module* module)
     while (!isAtEnd()) {
         Token* token = getToken();
         advance();
-        scanner->startIndex = scanner->currentIndex;
 
         if (token->type == TOKEN_NONE || hasErrors()) {
             if (token->type == TOKEN_EOF) {

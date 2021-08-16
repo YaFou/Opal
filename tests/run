@@ -30,7 +30,7 @@ run_test() {
         $("./target/opal" "./${d}main.oa" > $actual 2>&1)
     else
         $("./target/opal" "./${d}main.oa" > /dev/null)
-        $("./${d}target/program" > $actual 2>&1)
+        $("./program" > $actual 2>&1)
     fi
 
     local expected="${d}expected.txt"

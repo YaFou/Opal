@@ -28,11 +28,13 @@ int main(int argc, char** argv)
     Module* module = newModuleFromFilename(argv[1]);
 
     // SCANNING
+    printf("Scanning module \"%s\"...\n", module->name);
     Vector* tokens = scan(module);
     throwErrorsIfNeeded();
     // debugTokens(tokens);
 
     // PARSING
+    printf("Parsing module \"%s\"...\n", module->name);
     Node* node = parse(module, tokens);
     freeVector(tokens);
     throwErrorsIfNeeded();
@@ -44,20 +46,19 @@ int main(int argc, char** argv)
     IR* ir = generateIR(node);
     freeNode(node);
     // printf("%s", dumpIR(ir));
-    interpretIR(ir);
+    // interpretIR(ir);
 
     // GENERATING ASSEMBLY
-    // char* assemblyCode = generateAssembly(ir);
+    char* assemblyCode = generateAssembly(ir);
     freeIR(ir);
     // printf("%s", assemblyCode);
 
     freeModule(module);
 
-    // FILE* generated = fopen("tmp/generated.s", "w");
-    // fputs(assemblyCode, generated);
-    // fclose(generated);
-    // system("as tmp/generated.s -o tmp/generated.o");
-    // system("ld tmp/generated.o -o tmp/program");
+    FILE* generated = fopen("generated.s", "w");
+    fputs(assemblyCode, generated);
+    fclose(generated);
+    system("gcc generated.s -o program");
 
     return 0;
 }

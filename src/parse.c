@@ -4,6 +4,7 @@
 #include "error.h"
 #include <math.h>
 #include <string.h>
+#include "symbol.h"
 
 #define TYPE_INTEGER "<integer>"
 #define TYPE_BOOLEAN "<boolean>"
@@ -13,6 +14,7 @@ typedef struct {
     Module* module;
     int index;
     Vector* tokens;
+    Environment* environment;
 } Parser;
 
 typedef enum {
@@ -44,20 +46,66 @@ static Node* binary(Node* left);
 static Node* primary();
 static Node* grouping();
 static Node* unary();
+static Node* variable();
 
 ParseRule rules[] = {
     [TOKEN_PLUS]                = {PRECEDENCE_TERM, NULL, binary},
     [TOKEN_MINUS]               = {PRECEDENCE_TERM, unary, binary},
     [TOKEN_STAR]                = {PRECEDENCE_FACTOR, NULL, binary},
     [TOKEN_SLASH]               = {PRECEDENCE_FACTOR, NULL, binary},
-    [TOKEN_MODULO]              = {PRECEDENCE_FACTOR, NULL, binary},
     [TOKEN_LEFT_PAREN]          = {PRECEDENCE_NONE, grouping, NULL},
-    [TOKEN_INTEGER]             = {PRECEDENCE_NONE, primary, NULL},
-    [TOKEN_EOF]                 = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_RIGHT_PAREN]         = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_LEFT_BRACE]          = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_RIGHT_BRACE]         = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_SEMILICON]           = {PRECEDENCE_NONE, NULL, NULL},
     [TOKEN_CIRCUMFLEX]          = {PRECEDENCE_POWER, NULL, binary},
     [TOKEN_FALSE]               = {PRECEDENCE_NONE, primary, NULL},
     [TOKEN_TRUE]                = {PRECEDENCE_NONE, primary, NULL},
     [TOKEN_NULL]                = {PRECEDENCE_NONE, primary, NULL},
+    [TOKEN_EQUAL]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_DOUBLE_EQUAL]        = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_BANG_EQUAL]          = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_BANG]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_LESS]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_LESS_EQUAL]          = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_GREATER]             = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_GREATER_EQUAL]       = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_DOT]                 = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_COMMA]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_DOUBLE_AMPERSAND]    = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_DOUBLE_PIPE]         = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_QUESTION_MARK]       = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_PLUS_EQUAL]          = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_MINUS_EQUAL]         = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_STAR_EQUAL]          = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_SLASH_EQUAL]         = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_MODULO]              = {PRECEDENCE_FACTOR, NULL, binary},
+    [TOKEN_MODULO_EQUAL]        = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_LEFT_BRACKET]        = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_RIGHT_BRACKET]       = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_HASHTAG]             = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_COLON]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_INTEGER]             = {PRECEDENCE_NONE, primary, NULL},
+    [TOKEN_STRING]              = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_CHAR]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_FLOAT]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_IDENTIFIER]          = {PRECEDENCE_NONE, variable, NULL},
+    [TOKEN_ABSTRACT]            = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_BREAK]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_CLASS]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_CONST]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_CONTINUE]            = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_DO]                  = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_ELSE]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_ENUM]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_FOR]                 = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_IF]                  = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_INTERFACE]           = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_LOOP]                = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_RETURN]              = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_VAR]                 = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_WHILE]               = {PRECEDENCE_NONE, NULL, NULL},
+    [TOKEN_EOF]                 = {PRECEDENCE_NONE, NULL, NULL},
 };
 
 static Token* peekAt(int index)
@@ -73,6 +121,11 @@ static Token* peek()
 static Token* peekNext()
 {
     return peekAt(parser->index + 1);
+}
+
+static void back()
+{
+    parser->index--;
 }
 
 static Node* makeNode(NodeType type, int startIndex, int endIndex)
@@ -91,6 +144,7 @@ static Parser* newParser(Module* module, Vector* tokens)
     parser->module = module;
     parser->tokens = tokens;
     parser->index = 0;
+    parser->environment = newEnvironment();
 
     return parser;
 }
@@ -206,6 +260,7 @@ static void consume(TokenType type, char* message)
 {
     if (isAtEnd()) {
         addErrorAtToken(last(), message);
+        back();
 
         return;
     }
@@ -214,6 +269,7 @@ static void consume(TokenType type, char* message)
 
     if (token->type != type) {
         addErrorAtToken(token, message);
+        back();
     }
 }
 
@@ -243,6 +299,7 @@ static void checkTypes(Node* node)
 static Node* binary(Node* left)
 {
     Token* token = peek();
+    printf("%d\n", left == NULL);
     NodeType type = arithmeticOperation(token);
     advance();
     ParseRule* rule = getRule(token->type);
@@ -262,7 +319,7 @@ static Node* binary(Node* left)
 
 static Node* expression()
 {
-    return parsePrecedence(PRECEDENCE_ASSIGNMENT);
+    Node* node = parsePrecedence(PRECEDENCE_ASSIGNMENT);
 }
 
 static Node* unary()
@@ -289,9 +346,49 @@ static Node* grouping()
     return node;
 }
 
+static Node* declaration()
+{
+    Token* first = peek();
+    advance();
+    consume(TOKEN_IDENTIFIER, "Expect an identifier to declare a constant.");
+    char* identifier = peek()->value.string;
+    Token* last = peek();
+    Node* value;
+
+    if (peekNext()->type == TOKEN_EQUAL) {
+        advance();
+        advance();
+        value = expression();
+
+        if (value == NULL) {
+            back();
+        }
+
+        last = peek();
+    }
+
+    Variable* variable = newEnvironmentVariable(parser->environment, identifier, value != NULL ? value->valueType : NULL);
+
+    Node* node = makeNode(NODE_ASSIGNMENT, first->startIndex, last->endIndex);
+    node->children.variableAssignment = variable;
+    node->children.variableValue = value;
+
+    return node;
+}
+
 static Node* statement()
 {
-    Node* node = expression();
+    Token* token = peek();
+    Node* node;
+
+    switch (token->type) {
+        case TOKEN_CONST:
+            node = declaration();
+            break;
+        default:
+            node = expression();
+    }
+
     advance();
     consume(TOKEN_SEMILICON, "Expect \";\" after a statement.");
 
@@ -299,10 +396,35 @@ static Node* statement()
         return NULL;
     }
 
-    Token* token = isAtEnd() ? last() : peek();
+    token = isAtEnd() ? last() : peek();
     node->endIndex = token->endIndex;
 
     return node;
+}
+
+static Node* variable()
+{
+    Token* token = peek();
+    char* identifier = token->value.string;
+    Variable* variable = getEnvironmentVariable(parser->environment, identifier);
+
+    if (variable == NULL) {
+        addErrorAtToken(token, format("Undefined variable \"%s\".", identifier));
+
+        return NULL;
+    }
+
+    Node* node = makeNode(NODE_LOAD, token->startIndex, token->endIndex);
+    node->children.variable = variable;
+    node->valueType = variable->type;
+
+    return node;
+}
+
+void freeParser()
+{
+    freeEnvironment(parser->environment);
+    free(parser);
 }
 
 Node* parse(Module* module, Vector* tokens)
@@ -315,7 +437,7 @@ Node* parse(Module* module, Vector* tokens)
         advance();
     }
 
-    free(parser);
+    freeParser();
     Node* first = VECTOR_FIRST(statements);
     Node* last = VECTOR_LAST(statements);
     
@@ -337,6 +459,7 @@ void freeNode(Node* node)
         case NODE_MULTIPLY:
         case NODE_DIVIDE:
         case NODE_MODULO:
+        case NODE_POWER:
             freeNode(node->children.left);
             freeNode(node->children.right);
             break;
@@ -350,6 +473,14 @@ void freeNode(Node* node)
             }
 
             freeVector(node->children.nodes);
+            break;
+        }
+        case NODE_ASSIGNMENT: {
+            if (node->children.variableValue != NULL) {
+                freeNode(node->children.variableValue);
+            }
+
+            break;
         }
     }
     
@@ -358,82 +489,96 @@ void freeNode(Node* node)
 
 void optimizeNode(Module* module, Node* node)
 {
-    if (node->type == NODE_INTEGER) {
-        return;
-    }
-
-    if (node->type == NODE_STATEMENTS) {
-        for (VECTOR_EACH(node->children.nodes)) {
-            Node* child = VECTOR_GET(node->children.nodes, i);
-            optimizeNode(module, child);
-        }
-
-        return;
-    }
-
-    if (node->type == NODE_NEGATE) {
-        Node* inner = node->children.node;
-        optimizeNode(module, inner);
-
-        if (inner->type != NODE_INTEGER) {
+    switch (node->type) {
+        case NODE_STATEMENTS: {
+            for (VECTOR_EACH(node->children.nodes)) {
+                Node* child = VECTOR_GET(node->children.nodes, i);
+                optimizeNode(module, child);
+            }
+            
             return;
         }
+        case NODE_NEGATE: {
+            Node* inner = node->children.node;
+            optimizeNode(module, inner);
 
-        node->children.integer = -inner->children.integer;
-        node->type = NODE_INTEGER;
+            if (inner->type != NODE_INTEGER) {
+                return;
+            }
 
-        return;
-    }
+            node->children.integer = -inner->children.integer;
+            node->type = NODE_INTEGER;
 
-    Node* left = node->children.left;
-    Node* right = node->children.right;
-
-    optimizeNode(module, left);
-    optimizeNode(module, right);
-
-    if (left->type != NODE_INTEGER || right->type != NODE_INTEGER) {
-        return;
-    }
-
-    int value;
-
-    #define COMBINE(operator) left->children.integer operator right->children.integer
-    switch (node->type) {
+            return;
+        }
         case NODE_ADD:
-            value = COMBINE(+);
-            break;
         case NODE_SUBSTRACT:
-            value = COMBINE(-);
-            break;
         case NODE_MULTIPLY:
-            value = COMBINE(*);
-            break;
         case NODE_DIVIDE:
-            if (right->children.integer == 0) {
-                addErrorAt(module, right->startIndex, right->endIndex, "Can't divide per zero.");
-
-                return;
-            }
-
-            value = COMBINE(/);
-            break;
         case NODE_MODULO:
-            if (right->children.integer == 0) {
-                addErrorAt(module, right->startIndex, right->endIndex, "Can't modulo per zero.");
+        case NODE_POWER: {
+            Node* left = node->children.left;
+            Node* right = node->children.right;
 
+            optimizeNode(module, left);
+            optimizeNode(module, right);
+
+            if (left->type != NODE_INTEGER || right->type != NODE_INTEGER) {
                 return;
             }
 
-            value = COMBINE(%);
-            break;
-        case NODE_POWER:
-            value = pow(left->children.integer, right->children.integer);
-            break;
-    }
-    #undef COMBINE
+            int value;
 
-    freeNode(node->children.left);
-    freeNode(node->children.right);
-    node->type = NODE_INTEGER;
-    node->children.integer = value;
+            #define COMBINE(operator) left->children.integer operator right->children.integer
+            switch (node->type) {
+                case NODE_ADD:
+                    value = COMBINE(+);
+                    break;
+                case NODE_SUBSTRACT:
+                    value = COMBINE(-);
+                    break;
+                case NODE_MULTIPLY:
+                    value = COMBINE(*);
+                    break;
+                case NODE_DIVIDE:
+                    if (right->children.integer == 0) {
+                        addErrorAt(module, right->startIndex, right->endIndex, "Can't divide per zero.");
+
+                        return;
+                    }
+
+                    value = COMBINE(/);
+                    break;
+                case NODE_MODULO:
+                    if (right->children.integer == 0) {
+                        addErrorAt(module, right->startIndex, right->endIndex, "Can't modulo per zero.");
+
+                        return;
+                    }
+
+                    value = COMBINE(%);
+                    break;
+                case NODE_POWER:
+                    value = pow(left->children.integer, right->children.integer);
+                    break;
+            }
+            #undef COMBINE
+
+            freeNode(node->children.left);
+            freeNode(node->children.right);
+            node->type = NODE_INTEGER;
+            node->children.integer = value;
+
+            return;
+        }
+        case NODE_ASSIGNMENT: {
+            Node* value = node->children.variableValue;
+
+            if (value != NULL) {
+                optimizeNode(module, value);
+            }
+
+            return;
+        }
+    }
 }

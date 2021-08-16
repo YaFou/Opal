@@ -4,5 +4,5 @@ Compilation failed.
 [ERROR] Expect ";" after a statement.
 --> ./tests/expected_semilicon/main.oa - 1:6
 1 | 12+34
-  |      ^
+  |    ^^^
 

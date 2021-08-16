@@ -2,3 +2,6 @@
 /.vscode/
 /tests/*/actual.txt
 /tmp/
+/generated.s
+/program
+/program.exe

@@ -67,17 +67,21 @@ static int getFreeRegister()
 
 static char* operand(Operand* operand)
 {
-    if (operand->type == OPERAND_INTEGER) {
-        return format("$%d", operand->value.integer);
+    switch (operand->type) {
+        case OPERAND_INTEGER:
+            return format("$%d", operand->value.integer);
+        case OPERAND_REGISTER: {
+            Register* reg = operand->value.reg;
+
+            if (reg->realNumber == -1) {
+                reg->realNumber = getFreeRegister();
+            }
+
+            return registers[reg->realNumber];
+        }
+        case OPERAND_MEMORY:
+            return format("%d(%%esp)", -operand->value.integer - 4);
     }
-
-    Register* reg = operand->value.reg;
-
-    if (reg->realNumber == -1) {
-        reg->realNumber = getFreeRegister();
-    }
-
-    return registers[reg->realNumber];
 }
 
 static void freeRegister(int reg)
@@ -87,11 +91,11 @@ static void freeRegister(int reg)
 
 static void freeOperand(Operand* operand)
 {
-    if (operand->type == OPERAND_INTEGER) {
-        return;
+    switch (operand->type) {
+        case OPERAND_REGISTER:
+            freeRegister(operand->value.reg->realNumber);
+            break;
     }
-
-    freeRegister(operand->value.reg->realNumber);
 }
 
 static void binaryOperation(Instruction* instruction, char* operation)
@@ -103,7 +107,7 @@ static void binaryOperation(Instruction* instruction, char* operation)
     char* value2 = operand(operand2);
     char* resultReg = operand(OPERAND(instruction, 2));
 
-    emitLine(format("mov %s, %s", value2, resultReg));
+    emitLine(format("movl %s, %s", value2, resultReg));
     emitLine(format("%s %s, %s", operation, value1, resultReg));
 
     freeOperand(operand1);
@@ -119,13 +123,10 @@ static void divide(Instruction* instruction)
     char* value2 = operand(operand2);
     char* resultReg = operand(OPERAND(instruction, 2));
 
-    emitLine(format("mov %s, %%eax", value1));
-    emitLine(format("mov %s, %%ebx", value2));
-    emitLine(format("idiv %%ebx", value2));
-
-    if (strcmp(resultReg, "%eax")) {
-        emitLine(format("mov %%eax, %s", resultReg));
-    }
+    emitLine(format("movl %s, %%eax", value1));
+    emitLine(format("movl %s, %%ebx", value2));
+    emitLine(format("idivl %%ebx", value2));
+    emitLine(format("movl %%eax, %s", resultReg));
 
     freeOperand(operand1);
     freeOperand(operand2);
@@ -135,18 +136,18 @@ static void move(Instruction* instruction)
 {
     Operand* source = OPERAND(instruction, 0);
     char* destination = operand(OPERAND(instruction, 1));
-    emitLine(format("mov %s, %s", operand(source), destination));
+    emitLine(format("movl %s, %s", operand(source), destination));
     freeOperand(source);
 }
 
 static void ret(Instruction* instruction)
 {
     char* source = operand(OPERAND(instruction, 0));
-
-    if (strcmp(source, "%eax")) {
-        emitLine(format("mov %s, %%eax", source));
-    }
-    
+    emitLine(format("movl %s, %%eax", source));
+    emitLine("movl $D0, (%esp)");
+    emitLine("movl %eax, 4(%esp)");
+    emitLine("call _printf");
+    emitLine("leave");
     emitLine("ret");
 }
 
@@ -154,13 +155,13 @@ static void instruction(Instruction* instruction)
 {
     switch (instruction->type) {
         case IR_ADD:
-            binaryOperation(instruction, "add");
+            binaryOperation(instruction, "addl");
             break;
         case IR_SUBSTRACT:
-            binaryOperation(instruction, "sub");
+            binaryOperation(instruction, "subl");
             break;
         case IR_MULTIPLY:
-            binaryOperation(instruction, "imul");
+            binaryOperation(instruction, "imull");
             break;
         case IR_DIVIDE:
             divide(instruction);
@@ -190,6 +191,14 @@ static void procedure(Procedure* procedure)
 char* generateAssembly(IR* ir)
 {
     generator = makeGenerator();
+    emit(
+        "    .globl _main\n"
+        "D0: .ascii \"%d\\0\"\n"
+        "_main:\n"
+        "    pushl %ebp\n"
+        "    movl %esp, %ebp\n"
+        "    subl $32, %esp\n"
+    );
 
     for (VECTOR_EACH(ir->procedures)) {
         procedure(VECTOR_GET(ir->procedures, i));
