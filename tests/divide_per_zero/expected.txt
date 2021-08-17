@@ -1,8 +1,0 @@
-Compilation failed.
-1 error has occured.
-
-[ERROR] Can't divide per zero.
---> ./tests/divide_per_zero/main.oa - 1:3
-1 | 0/(1-1);
-  |   ^^^^^
-

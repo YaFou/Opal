@@ -1,8 +1,0 @@
-Compilation failed.
-1 error has occured.
-
-[ERROR] Expect ")" after an expression.
---> ./tests/expected_right_paren/main.oa - 1:3
-1 | (0;
-  |   ^
-

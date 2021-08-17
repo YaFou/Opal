@@ -1,8 +1,0 @@
-Compilation failed.
-1 error has occured.
-
-[ERROR] A string value must be closed with '"' but it's the end of the file.
---> ./tests/expected_close_string_value/main.oa - 1:9
-1 | 1+2"+3+4
-  |         ^
-

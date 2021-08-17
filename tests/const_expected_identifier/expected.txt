@@ -1,8 +1,0 @@
-Compilation failed.
-1 error has occured.
-
-[ERROR] Expect an identifier to declare a constant.
---> ./tests/const_expected_identifier/main.oa - 1:6
-1 | const;
-  |      ^
-
