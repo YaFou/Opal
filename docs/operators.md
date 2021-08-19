@@ -19,7 +19,7 @@
 >
 > booleanOperator: `&&` | `||`
 >
-> compoundAssignmentOperator: `+=` | `-=` | `*=` | `/=` | `%=`
+> compoundAssignmentOperator: `+=` | `-=` | `*=` | `**=` | `/=` | `%=`
 >
 > incrementalOperation: (incrementalOperator expression) | (expression incrementalOperator)
 >
@@ -74,11 +74,12 @@ true || true   // true
 ### Compound assignment operations
 
 ```
-variable += 10 // variable = variable + 10
-variable -= 10 // variable = variable - 10
-variable *= 10 // variable = variable * 10
-variable /= 10 // variable = variable / 10
-variable %= 10 // variable = variable % 10
+variable += 10  // variable = variable + 10
+variable -= 10  // variable = variable - 10
+variable *= 10  // variable = variable * 10
+variable **= 10 // variable = variable ** 10
+variable /= 10  // variable = variable / 10
+variable %= 10  // variable = variable % 10
 ```
 
 ### Assignment operation

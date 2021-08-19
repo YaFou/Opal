@@ -1,7 +1,7 @@
 # Directive
 
 *Syntax*
-> directive: `#` complexIdentifier `;`
+> directive: `#` IDENTIFIER complexIdentifier `;`
 
 ## Examples
 

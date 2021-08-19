@@ -5,23 +5,34 @@
 |-|-|-|
 |digit|from `0` to `9`|`4`, `2`|
 |char|all characters|`a`, `*`|
-|alpha|from `a` to `z` or from `A` to `Z` or `_`|`a`, `K`, `_`|
+|alpha|from `a` to `z` or from `A` to `Z`|`a`, `K`|
 
 ## Token type
 
 ### Symbols
 
-|Name|Value|Stored as|
-|-|-|-|
+|Name|Value|
+|-|-|
 |PLUS|`+`|
+|PLUS_EQUAL|`+=`|
+|DOUBLE_PLUS|`++`|
 |MINUS|`-`|
-|DOUBLE_STAR|`**`|
+|MINUS_EQUAL|`-=`|
+|DOUBLE_MINUS|`--`|
 |STAR|`*`|
+|STAR_EQUAL|`*=`|
+|DOUBLE_STAR|`**`|
+|DOUBLE_STAR_EQUAL|`**=`|
 |SLASH|`/`|
+|SLASH_EQUAL|`/=`|
+|MODULO|`%`|
+|MODULO_EQUAL|`%=`|
 |LEFT_PAREN|`(`|
 |RIGHT_PAREN|`)`|
 |LEFT_BRACE|`{`|
 |RIGHT_BRACE|`}`|
+|LEFT_BRACKET|`[`|
+|RIGHT_BRACKET|`]`|
 |SEMILICON|`;`|
 |EQUAL|`=`|
 |DOUBLE_EQUAL|`==`|
@@ -33,24 +44,12 @@
 |GREATER_EQUAL|`>=`|
 |DOT|`.`|
 |COMMA|`,`|
-|AMPERSAND|`&`|
 |DOUBLE_AMPERSAND|`&&`|
-|DOUBLE_PIPE|`||`|
+|DOUBLE_PIPE|`\|\|`|
 |QUESTION_MARK|`?`|
-|PLUS_EQUAL|`+=`|
-|DOUBLE_EQUAL|`++`|
-|MINUS_EQUAL|`-=`|
-|DOUBLE_MINUS|`--`|
-|STAR_EQUAL|`*=`|
-|SLASH_EQUAL|`/=`|
-|MODULO|`%`|
-|MODULO_EQUAL|`%=`|
-|LEFT_BRACKET|`[`|
-|RIGHT_BRACKET|`]`|
 |HASHTAG|`#`|
 |COLON|`:`|
 |AT_SYMBOL|`@`|
-|ARROW|`=>`|
 |UNDERSCORE|`_`|
 |EOF|`\0`||
 
@@ -61,14 +60,14 @@
 |INTEGER|`<digit>+`|integer|
 |STRING|`"<char>*"`|string|
 |CHAR|`'<char>'`|char|
-|FLOAT|`<digit>+.<digit>+`|float|
-|IDENTIFIER|`<alpha>(<alpha>\|<digit>)*`|string|
+|FLOAT|`(<digit>+)?.<digit>+`|float|
+|IDENTIFIER|`<alpha>(<alpha>\|<digit>\|_)*`|string|
 
 ### Keywords
 
-|Name|Value|Stored as|
-|-|-|-|
-|\<uppercase keyword>|\<keyword>||
+|Name|Value|
+|-|-|
+|\<uppercase keyword>|\<keyword>|
 
 - `abstract`
 - `break`

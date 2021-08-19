@@ -15,7 +15,7 @@
 ## Source code
 
 *Syntax*
-> module: rootDeclaration*
+> module: rootDeclaration* EOF
 > 
 > rootDeclaration: directive | function | class | enum | interface
 > 

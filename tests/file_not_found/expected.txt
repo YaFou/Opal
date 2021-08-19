@@ -1,0 +1,4 @@
+Compilation failed.
+1 error has occured.
+
+[ERROR] E001 - Failed to open "./tests/file_not_found/main.oa".

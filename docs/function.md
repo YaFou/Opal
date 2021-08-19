@@ -3,7 +3,7 @@
 *Syntax*
 > function: functionHeader blockStatement
 >
-> functionHeader: IDENTIFIER parameters type
+> functionHeader: IDENTIFIER parameters type?
 > 
 > parameters: `(` (parameter (`,` parameter)*)? `)`
 >
@@ -19,7 +19,7 @@ power(Integer base, Integer power) Integer
 ```
 
 ```
-panic() &
+panic()
 {
     // ...
 }

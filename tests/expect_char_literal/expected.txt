@@ -1,0 +1,8 @@
+Scanning module "./tests/expect_char_literal/main.oa".
+Compilation failed.
+1 error has occured.
+
+[ERROR] E006 - Expect a character but it's the end of the file.
+--> ./tests/expect_char_literal/main.oa - 1:2
+1 | '
+  |  ^

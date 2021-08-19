@@ -1,0 +1,8 @@
+Scanning module "./tests/expect_double_ampersand/main.oa".
+Compilation failed.
+1 error has occured.
+
+[ERROR] E009 - Expect "&&" but received "&~".
+--> ./tests/expect_double_ampersand/main.oa - 1:4
+1 | 12&~34
+  |    ^

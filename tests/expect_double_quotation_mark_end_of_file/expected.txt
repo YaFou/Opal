@@ -1,0 +1,8 @@
+Scanning module "./tests/expect_double_quotation_mark_end_of_file/main.oa".
+Compilation failed.
+1 error has occured.
+
+[ERROR] E008 - Expect '"' but it's end of the file.
+--> ./tests/expect_double_quotation_mark_end_of_file/main.oa - 1:5
+1 | "abc
+  |     ^

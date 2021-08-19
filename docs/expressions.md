@@ -47,12 +47,13 @@ variable > 10 ? "It's true!" : "It's false..."
 > blockExpression: loopExpression \
 > | ifExpression \
 > | matchExpression
+> | blockStatement
 
 ## Precedences
 
 *Higher number is a higher priority.*
-1. ternary (`.. ? .. : ..`)
 1. assignment (`=`)
+1. ternary (`.. ? .. : ..`)
 1. or (`||`)
 1. and (`&&`)
 1. comparison (`==`, `!=`, `<`, `<=`, `>`, `>=`)
@@ -60,8 +61,8 @@ variable > 10 ? "It's true!" : "It's false..."
 1. factor (`*`, `/` or `%`)
 1. unary (`-` or `!`)
 1. power (`**`)
-1. grouped (`()`)
 1. call (`.`, `[..]` or `(..)`)
+1. grouped (`()`)
 
 ```
 12 + 34 * 56 / (78 - 9)
