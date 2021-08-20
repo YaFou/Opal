@@ -1,0 +1,9 @@
+[1/2] Scanning module "./tests/expect_function_parameters/main.oa".
+[2/2] Parsing module "./tests/expect_function_parameters/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
+
+[ERROR] E010 - Expect "(" for parameters.
+--> ./tests/expect_function_parameters/main.oa - 1:5
+1 | main
+  |     ^

@@ -1,6 +1,6 @@
-Scanning module "./tests/unexpected_character/main.oa".
-Compilation failed.
-1 error has occured.
+[1/2] Scanning module "./tests/unexpected_character/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
 
 [ERROR] E004 - Unexpected character "~".
 --> ./tests/unexpected_character/main.oa - 1:3

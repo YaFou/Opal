@@ -1,6 +1,6 @@
-Scanning module "./tests/expect_double_pipe/main.oa".
-Compilation failed.
-1 error has occured.
+[1/2] Scanning module "./tests/expect_double_pipe/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
 
 [ERROR] E005 - Expect "||" but received "|~".
 --> ./tests/expect_double_pipe/main.oa - 1:4

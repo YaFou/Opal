@@ -26,7 +26,7 @@ typedef enum {
     TOKEN_RIGHT_BRACE,      // }
     TOKEN_LEFT_BRACKET,     // [
     TOKEN_RIGHT_BRACKET,    // ]
-    TOKEN_SEMILICON,        // ;
+    TOKEN_SEMICOLON,        // ;
     TOKEN_EQUAL,            // =
     TOKEN_DOUBLE_EQUAL,     // ==
     TOKEN_BANG_EQUAL,       // !=
@@ -75,7 +75,7 @@ typedef enum {
     TOKEN_TRUE,
     TOKEN_VAR,
     TOKEN_WHILE,
-} TokenType;
+} TokenType_;
 
 typedef struct {
     // HEADER
@@ -84,7 +84,7 @@ typedef struct {
     int endIndex;
 
     // BODY
-    TokenType type;
+    TokenType_ type;
     union {
         int integer;        // INTEGER
         float _float;       // FLOAT

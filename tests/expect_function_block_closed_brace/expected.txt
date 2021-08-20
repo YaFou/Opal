@@ -1,0 +1,9 @@
+[1/2] Scanning module "./tests/expect_function_block_closed_brace/main.oa".
+[2/2] Parsing module "./tests/expect_function_block_closed_brace/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
+
+[ERROR] E012 - An opening "(", "{" or "[" must be closed.
+--> ./tests/expect_function_block_closed_brace/main.oa - 1:9
+1 | main() {
+  |         ^

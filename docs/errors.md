@@ -13,6 +13,14 @@
 |[E007](#e007)|Expect `'`|Scanner|
 |[E008](#e008)|Expect `"`|Scanner|
 |[E009](#e009)|Expect `&&`|Scanner|
+|[E010](#e010)|Expect `(` for parameters|Parser|
+|[E011](#e011)|Expect function name|Parser|
+|[E012](#e012)|Expect a closed symbol|Parser|
+|[E013](#e013)|Expect a statement block to start a function body|Parser|
+|[E014](#e014)|Expect `;` after a statement|Parser|
+|[E015](#e015)|Expect an expression|Parser|
+|[E016](#e016)|Expect variable name|Parser|
+|[E017](#e017)|Expect `=` to assign the variable|Parser|
 
 ### E004
 *Example*

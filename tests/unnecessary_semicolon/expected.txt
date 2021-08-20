@@ -1,0 +1,9 @@
+[1/2] Scanning module "./tests/unnecessary_semicolon/main.oa".
+[2/2] Parsing module "./tests/unnecessary_semicolon/main.oa".
+=== Compilation has succeed.
+=== 1 warning has occured.
+
+[WARNING] W001 - Unnecessary ";".
+--> ./tests/unnecessary_semicolon/main.oa - 3:5
+3 |     ;
+  |     ^

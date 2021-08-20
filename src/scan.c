@@ -69,6 +69,7 @@ static void skipWhitespaces()
             case ' ':
             case '\t':
             case '\r':
+            case '\n':
                 advance();
                 break;
             default:
@@ -77,7 +78,7 @@ static void skipWhitespaces()
     }
 }
 
-static Token* makeToken(TokenType type)
+static Token* makeToken(TokenType_ type)
 {
     Token* token = safeMalloc(sizeof(Token));
     token->module = scanner->module;
@@ -284,6 +285,7 @@ static Token* identifier()
         c = peek();
     }
 
+    back();
     const char* identifier = buildSB(builder);
     freeSB(builder);
     Token* kword = keyword(identifier);
@@ -397,7 +399,7 @@ static Token* generateToken()
         case '}': return makeToken(TOKEN_RIGHT_BRACE);
         case '[': return makeToken(TOKEN_LEFT_BRACKET);
         case ']': return makeToken(TOKEN_RIGHT_BRACKET);
-        case ';': return makeToken(TOKEN_SEMILICON);
+        case ';': return makeToken(TOKEN_SEMICOLON);
         case '=': return makeToken(match('=') ? TOKEN_DOUBLE_EQUAL : TOKEN_EQUAL);
         case '!': return makeToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '<': return makeToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);

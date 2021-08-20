@@ -3,11 +3,18 @@ SRCS := src/debug.c \
 	src/main.c \
 	src/memory.c \
 	src/module.c \
+	src/parse.c \
 	src/scan.c \
 	src/util.c
 
 OBJS := $(patsubst src/%.c,target/%.o,$(SRCS))
 EXE := target/opal
+DEBUG := 0
+CFLAGS :=
+
+ifeq ($(DEBUG),1)
+	CFLAGS := $(CFLAGS) -D _DEBUG
+endif
 
 .SILENT:
 
@@ -23,7 +30,7 @@ $(EXE): target tmp $(OBJS)
 
 target/%.o: src/%.c
 	echo "Compiling $@ from $<..."
-	gcc $< -o $@ -c
+	gcc -c $(CFLAGS) $< -o $@
 
 .PHONY: build
 build: $(EXE)

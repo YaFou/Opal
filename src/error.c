@@ -11,10 +11,18 @@ typedef struct {
 } Position;
 
 Vector* errors;
+Vector* warnings;
 
 void throwFatal(const char* message)
 {
-    fprintf(stderr, "[FATAL] %s\n", message);
+    fprintf(
+        stderr,
+        tty() ?
+        TEXT_BOLD TEXT_BRIGHT_RED "[FATAL]" TEXT_NORMAL " %s\n" TEXT_RESET :
+        "[FATAL] %s\n",
+        message
+    );
+
     exit(2);
 }
 
@@ -25,6 +33,15 @@ static void addError(char* message)
     }
 
     vectorPush(errors, message);
+}
+
+static void addWarning(char* message)
+{
+    if (warnings == NULL) {
+        warnings = newVector();
+    }
+
+    vectorPush(warnings, message);
 }
 
 void throwError(const char* message, ...)
@@ -45,16 +62,10 @@ static void copyPosition(Position* source, Position* destination)
     destination->column = source->column;
 }
 
-void addErrorAt(Module* module, int startIndex, int endIndex, const char* message, ...)
+static char* generateCode(Module* module, int startIndex, int endIndex, char* message, const char* color)
 {
-    va_list ap;
-    va_start(ap, message);
-    char buffer[BUFFER_SIZE];
-    vsprintf(buffer, message, ap);
-    va_end(ap);
-
     StringBuilder* builder = newSB();
-    appendSB(builder, buffer);
+    appendSB(builder, message);
 
     const char* source = module->source;
     int index = 0;
@@ -111,12 +122,16 @@ void addErrorAt(Module* module, int startIndex, int endIndex, const char* messag
             break;
         }
 
+        if (c == '\r') {
+            continue;
+        }
+
         addSB(lineBuilder, c);
     }
 
-    appendSB(builder, format("\n--> %s - %d:%d", module->projectPath, start.line, start.column));
+    appendSB(builder, format(tty() ? TEXT_RESET TEXT_FAINT "\n--> %s - %d:%d" : "\n--> %s - %d:%d", module->projectPath, start.line, start.column));
     int maxLineLength = strlen(format("%d", end.line));
-    char* codeFormat = format("\n%%%dd | %%s\n", maxLineLength);
+    char* codeFormat = format(tty() ? TEXT_RESET "\n%%%dd | %%s\n" : "\n%%%dd | %%s\n", maxLineLength);
 
     VEC_EACH(lines) {
         char* line = VEC_EACH_GET(lines);
@@ -124,27 +139,77 @@ void addErrorAt(Module* module, int startIndex, int endIndex, const char* messag
         appendSB(builder, format(codeFormat, lineNumber, line));
 
         if (start.line == end.line) {
-            appendSB(builder, format("%s | %s%s", repeatString(" ", maxLineLength), repeatString(" ", start.column - 1), repeatString("^", end.column - start.column)));
+            char* footer = tty() ?
+                format("%s | %s%s%s", repeatString(" ", maxLineLength), color, repeatString(" ", start.column - 1), repeatString("^", end.column - start.column)) :
+                format("%s | %s%s", repeatString(" ", maxLineLength), repeatString(" ", start.column - 1), repeatString("^", end.column - start.column));
+
+            appendSB(builder, footer);
         }
+
+        free(line);
     }
 
     freeVector(lines);
-    addError(buildSB(builder));
+    char* code = buildSB(builder);
     freeSB(builder);
+
+    return code;
+}
+
+void addErrorAt(Module* module, int startIndex, int endIndex, const char* message, ...)
+{
+    va_list ap;
+    va_start(ap, message);
+    char buffer[BUFFER_SIZE];
+    vsprintf(buffer, message, ap);
+    va_end(ap);
+
+    addError(generateCode(module, startIndex, endIndex, buffer, TEXT_RED));
 }
 
 void throwErrors()
 {
-    if (!errors->size) {
-        return;
-    }
-
-    fprintf(stderr, "Compilation failed.\n%d %s occured.\n", errors->size, errors->size > 1 ? "errors have" : "error has");
+    fprintf(stderr, tty() ? TEXT_RED "=== %d %s occured.\n" : "=== %d %s occured.\n", errors->size, errors->size > 1 ? "errors have" : "error has");
 
     VEC_EACH(errors) {
         const char* message = VEC_EACH_GET(errors);
-        fprintf(stderr, "\n[ERROR] %s\n", message);
+        fprintf(stderr, tty() ? TEXT_BOLD TEXT_RED "\n[ERROR]" TEXT_NORMAL " %s\n" TEXT_RESET : "\n[ERROR] %s\n", message);
     }
 
+    if (warnings && warnings->size) {
+        fprintf(stderr, "\n");
+    }
+
+    throwWarnings();
     exit(1);
+}
+
+bool hasErrors()
+{
+    return errors && errors->size;
+}
+
+void addWarningAt(Module* module, int startIndex, int endIndex, const char* message, ...)
+{
+    va_list ap;
+    va_start(ap, message);
+    char buffer[BUFFER_SIZE];
+    vsprintf(buffer, message, ap);
+    va_end(ap);
+    
+    addWarning(generateCode(module, startIndex, endIndex, buffer, TEXT_YELLOW));
+}
+
+void throwWarnings()
+{
+    if (!warnings || !warnings->size) {
+        return;
+    }
+
+    fprintf(stderr, tty() ? TEXT_YELLOW "=== %d %s occured.\n" : "=== %d %s occured.\n", warnings->size, warnings->size > 1 ? "warnings have" : "warning has");
+
+    VEC_EACH(warnings) {
+        const char* message = VEC_EACH_GET(warnings);
+        fprintf(stderr, tty() ? TEXT_BOLD TEXT_YELLOW "\n[WARNING]" TEXT_NORMAL " %s\n" TEXT_RESET : "\n[WARNING] %s\n", message);
+    }
 }

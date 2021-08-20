@@ -5,6 +5,12 @@
 #include <string.h>
 #include <stdarg.h>
 
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 // --- VECTOR ---
 
 #define VEC_INITIAL_CAPACITY 8
@@ -144,4 +150,9 @@ char* repeatString(char* string, size_t times)
     freeSB(builder);
 
     return result;
+}
+
+bool tty()
+{
+    return isatty(fileno(stdout));
 }
