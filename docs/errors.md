@@ -17,10 +17,15 @@
 |[E011](#e011)|Expect function name|Parser|
 |[E012](#e012)|Expect a closed symbol|Parser|
 |[E013](#e013)|Expect a statement block to start a function body|Parser|
-|[E014](#e014)|Expect `;` after a statement|Parser|
 |[E015](#e015)|Expect an expression|Parser|
 |[E016](#e016)|Expect variable name|Parser|
 |[E017](#e017)|Expect `=` to assign the variable|Parser|
+|[E018](#e018)|Expect member name|Parser|
+|[E019](#e019)|Expect `while` to set the loop condition|Parser|
+|[E020](#e020)|Expect `;` after a do-while loop condition|Parser|
+|[E021](#e021)|Expect `:` to start case block|Parser|
+|[E022](#e022)|Expect `,` after an inline expression of a match arm|Parser|
+|[E023](#e023)|Expect `:` to set the else expression|Parser|
 
 ### E004
 *Example*

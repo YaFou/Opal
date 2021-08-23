@@ -19,10 +19,15 @@
 #define E011   "E011 - Expect function name."
 #define E012   "E012 - An opening \"(\", \"{\" or \"[\" must be closed."
 #define E013   "E013 - Expect \"{\" to start a statement body."
-#define E014   "E014 - Expect \";\" after a statement."
 #define E015   "E015 - Expect an expression."
 #define E016   "E016 - Expect variable name."
 #define E017   "E017 - Expect \"=\" to assign the variable."
+#define E018   "E018 - Expect member name."
+#define E019   "E019 - Expect \"while\" to set the loop condition."
+#define E020   "E020 - Expect \";\" after a do while loop condition."
+#define E021   "E021 - Expect \":\" to set the case block."
+#define E022   "E022 - Expect \",\" after an inline expression of a match arm."
+#define E023   "E023 - Expect \":\" to set the else expression of a ternary expression."
 
 // FATAL CODES
 #define F001 "F001 - Failed to allocate memory."

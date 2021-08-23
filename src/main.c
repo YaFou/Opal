@@ -69,7 +69,6 @@ int main(int argc, const char** argv)
         module->name
     );
     throwWarnings();
-
     freeNode(node);
     freeModule(module);
 

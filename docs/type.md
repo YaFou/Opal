@@ -1,7 +1,7 @@
 # Type
 
 *Syntax*
-> type: IDENTIFIER generics?
+> type: `?`? IDENTIFIER generics?
 >
 > generics: `<` type (`,` type)* `>`
 

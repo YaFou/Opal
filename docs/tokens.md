@@ -83,7 +83,6 @@
 - `interface`
 - `loop`
 - `match`
-- `new`
 - `null`
 - `return`
 - `static`

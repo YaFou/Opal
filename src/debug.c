@@ -63,7 +63,6 @@ static const char* getTokenName(TokenType_ type)
         case TOKEN_INTERFACE: return "INTERFACE";
         case TOKEN_LOOP: return "LOOP";
         case TOKEN_MATCH: return "MATCH";
-        case TOKEN_NEW: return "NEW";
         case TOKEN_NULL: return "NULL";
         case TOKEN_RETURN: return "RETURN";
         case TOKEN_STATIC: return "STATIC";
@@ -149,16 +148,29 @@ static const char* getNodeName(NodeType type)
         case NODE_DIVIDE_ASSIGNMENT: return "DIVIDE_ASSIGNMENT";
         case NODE_MODULO_ASSIGNMENT: return "MODULO_ASSIGNMENT";
         case NODE_POWER_ASSIGNMENT: return "POWER_ASSIGNMENT";
+        case NODE_LOAD: return "LOAD";
+        case NODE_MEMBER: return "MEMBER";
+        case NODE_CALL: return "CALL";
+        case NODE_PRE_INCREMENT: return "PRE_INCREMENT";
+        case NODE_PRE_DECREMENT: return "PRE_DECREMENT";
+        case NODE_POST_INCREMENT: return "POST_INCREMENT";
+        case NODE_POST_DECREMENT: return "POST_DECREMENT";
         case NODE_ASSIGNMENT: return "ASSIGNMENT";
         case NODE_STATEMENTS: return "STATEMENTS";
         case NODE_IF: return "IF";
         case NODE_LOOP: return "LOOP";
         case NODE_WHILE: return "WHILE";
+        case NODE_DO_WHILE: return "DO_WHILE";
         case NODE_MATCH: return "MATCH";
         case NODE_MATCH_ARM: return "MATCH_ARM";
+        case NODE_MATCH_ARM_DEFAULT: return "MATCH_ARM_DEFAULT";
         case NODE_RETURN: return "RETURN";
+        case NODE_IMPLICIT_RETURN: return "IMPLICIT_RETURN";
+        case NODE_BREAK: return "BREAK";
+        case NODE_CONTINUE: return "CONTINUE";
         case NODE_INTEGER: return "INTEGER";
         case NODE_BOOLEAN: return "BOOLEAN";
+        case NODE_NULL: return "NULL";
         default: return format("UNKNOWN [%d]", type);
     }
 }
@@ -213,14 +225,68 @@ static void printNodeChildren(Node* node)
             return;
         case NODE_NEGATE:
         case NODE_NOT:
+        case NODE_LOOP:
+        case NODE_MATCH_ARM_DEFAULT:
+        case NODE_RETURN:
+        case NODE_IMPLICIT_RETURN:
+        case NODE_PRE_INCREMENT:
+        case NODE_PRE_DECREMENT:
+        case NODE_POST_INCREMENT:
+        case NODE_POST_DECREMENT:
             printf("%snode = ", spaces);
             printNode(node->children.node);
+            return;
+        case NODE_MEMBER:
+            printf("%svalue = ", spaces);
+            printNode(node->children.memberValue);
+            printf("%sname = %s\n", spaces, node->children.memberName);
+            return;
+        case NODE_WHILE:
+        case NODE_DO_WHILE:
+            printf("%scondition = ", spaces);
+            printNode(node->children.whileCondition);
+            printf("%sbody = ", spaces);
+            printNode(node->children.whileBody);
+            return;
+        case NODE_IF:
+            printf("%scondition = ", spaces);
+            printNode(node->children.ifCondition);
+            printf("%sbody = ", spaces);
+            printNode(node->children.ifBody);
+
+            if (node->children.elseBody) {
+                printf("%selse = ", spaces);
+                printNode(node->children.elseBody);
+            }
+
             return;
         case NODE_INTEGER:
             printf("%sinteger = %d\n", spaces, node->children.integer);
             return;
         case NODE_BOOLEAN:
             printf("%sinteger = %s\n", spaces, node->children.boolean ? "true" : "false");
+            return;
+        case NODE_MATCH: {
+            printf("%scondition = ", spaces);
+            printNode(node->children.matchValue);
+            printf("%sarms = [\n", spaces);
+            indent();
+
+            VEC_EACH(node->children.matchArms) {
+                printf("%s", spaces);
+                Node* declaration = VEC_EACH_GET(node->children.matchArms);
+                printNode(declaration);
+            }
+
+            outdent();
+            printf("%s]\n", spaces);
+            return;
+        }
+        case NODE_MATCH_ARM:
+            printf("%sexpression = ", spaces);
+            printNode(node->children.matchArmExpression);
+            printf("%sbody = ", spaces);
+            printNode(node->children.matchArmBody);
             return;
     }
 }

@@ -1,0 +1,9 @@
+[1/2] Scanning module "./tests/expect_do_while_semicolon/main.oa".
+[2/2] Parsing module "./tests/expect_do_while_semicolon/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
+
+[ERROR] E020 - Expect ";" after a do while loop condition.
+--> ./tests/expect_do_while_semicolon/main.oa - 6:1
+6 | }
+  | ^

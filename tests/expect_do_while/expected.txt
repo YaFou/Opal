@@ -1,0 +1,9 @@
+[1/2] Scanning module "./tests/expect_do_while/main.oa".
+[2/2] Parsing module "./tests/expect_do_while/main.oa".
+=== Compilation failed.
+=== 1 error has occured.
+
+[ERROR] E019 - Expect "while" to set the loop condition.
+--> ./tests/expect_do_while/main.oa - 6:1
+6 | }
+  | ^

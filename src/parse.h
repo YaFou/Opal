@@ -35,19 +35,32 @@ typedef enum {
     NODE_DIVIDE_ASSIGNMENT,
     NODE_MODULO_ASSIGNMENT,
     NODE_POWER_ASSIGNMENT,
+    NODE_LOAD,
+    NODE_MEMBER,
+    NODE_CALL,
+    NODE_PRE_INCREMENT,
+    NODE_PRE_DECREMENT,
+    NODE_POST_INCREMENT,
+    NODE_POST_DECREMENT,
 
     // CONTROL FLOW
     NODE_STATEMENTS,
     NODE_IF,
     NODE_LOOP,
     NODE_WHILE,
+    NODE_DO_WHILE,
     NODE_MATCH,
     NODE_MATCH_ARM,
+    NODE_MATCH_ARM_DEFAULT,
     NODE_RETURN,
+    NODE_IMPLICIT_RETURN,
+    NODE_BREAK,
+    NODE_CONTINUE,
 
     // LITERALS
     NODE_INTEGER,
     NODE_BOOLEAN,
+    NODE_NULL,
 } NodeType;
 
 typedef struct Node {
@@ -97,6 +110,11 @@ typedef struct Node {
         struct {
             Vector* functionParameters;
             struct Node* functionBody;
+        };
+
+        struct {
+            struct Node* memberValue;
+            const char* memberName;
         };
     } children;
 } Node;

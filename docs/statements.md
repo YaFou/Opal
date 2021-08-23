@@ -3,4 +3,4 @@
 *Syntax*
 > blockStatement: `{` statement* `}`
 >
-> statement: `;` | (inlineExpression `;`) | blockExpression
+> statement: `;` | (inlineExpression `;`?) | blockExpression

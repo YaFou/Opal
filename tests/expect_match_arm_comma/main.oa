@@ -1,0 +1,6 @@
+main()
+{
+    match true {
+        false: 12
+    }
+}

@@ -150,7 +150,14 @@ static Token* number(bool isFloat)
         if (hasDot) {
             divider *= 10;
         } else if (match('.')) {
-            hasDot = true;
+            if (isDigit(peekNext())) {
+                hasDot = true;
+
+                continue;
+            }
+
+            back();
+            break;
         }
     }
 
@@ -235,9 +242,6 @@ static Token* keyword(const char* keyword)
             }
             break;
         case 'n':
-            if (!strcmp(keyword, "new")) {
-                return makeToken(TOKEN_NEW);
-            }
             if (!strcmp(keyword, "null")) {
                 return makeToken(TOKEN_NULL);
             }

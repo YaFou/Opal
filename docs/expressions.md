@@ -14,7 +14,6 @@
 > | arrayExpression \
 > | indexExpression \
 > | callExpression \
-> | newExpression \
 > | memberExpression \
 > | CONTINUE \
 > | BREAK \

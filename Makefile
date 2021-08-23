@@ -1,5 +1,4 @@
-SRCS := src/debug.c \
-	src/error.c \
+SRCS := src/error.c \
 	src/main.c \
 	src/memory.c \
 	src/module.c \
@@ -7,14 +6,16 @@ SRCS := src/debug.c \
 	src/scan.c \
 	src/util.c
 
-OBJS := $(patsubst src/%.c,target/%.o,$(SRCS))
 EXE := target/opal
 DEBUG := 0
 CFLAGS :=
 
 ifeq ($(DEBUG),1)
 	CFLAGS := $(CFLAGS) -D _DEBUG
+	SRCS := $(SRCS) src/debug.c
 endif
+
+OBJS := $(patsubst src/%.c,target/%.o,$(SRCS))
 
 .SILENT:
 

@@ -68,7 +68,6 @@ typedef enum {
     TOKEN_INTERFACE,
     TOKEN_LOOP,
     TOKEN_MATCH,
-    TOKEN_NEW,
     TOKEN_NULL,
     TOKEN_RETURN,
     TOKEN_STATIC,
