@@ -395,7 +395,35 @@ static Token* generateToken()
 
             return makeToken(match('=') ? TOKEN_STAR_EQUAL : TOKEN_STAR);
         }
-        case '/': return makeToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        case '/': {
+            if (match('/')) {
+                advance();
+
+                while (!isAtEnd() && peek() != '\n') {
+                    advance();
+                }
+
+                return NULL;
+            }
+
+            if (match('*')) {
+                advance();
+
+                while (peek() != '*' && peekNext() != '/') {
+                    if (isAtEnd()) {
+                        return NULL;
+                    }
+
+                    advance();
+                }
+
+                advance();
+
+                return NULL;
+            }
+
+            return makeToken(match('=') ? TOKEN_SLASH_EQUAL : TOKEN_SLASH);
+        }
         case '%': return makeToken(match('=') ? TOKEN_MODULO_EQUAL : TOKEN_MODULO);
         case '(': return makeToken(TOKEN_LEFT_PAREN);
         case ')': return makeToken(TOKEN_RIGHT_PAREN);
@@ -416,7 +444,7 @@ static Token* generateToken()
         case '#': return makeToken(TOKEN_HASHTAG);
         case ':': return makeToken(TOKEN_COLON);
         case '@': return makeToken(TOKEN_AT_SYMBOL);
-        case '_': return makeToken(TOKEN_UNDERSCORE);
+        case '_': return isAlpha(peekNext()) ? identifier() : makeToken(TOKEN_UNDERSCORE);
         case '\'': return char_();
         case '"': return string();
     }

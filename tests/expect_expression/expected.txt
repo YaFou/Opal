@@ -5,5 +5,5 @@
 
 [ERROR] E015 - Expect an expression.
 --> ./tests/expect_expression/main.oa - 3:5
-3 |     +;
+3 |     *;
   |     ^
