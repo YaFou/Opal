@@ -13,19 +13,29 @@
 |[E007](#e007)|Expect `'`|Scanner|
 |[E008](#e008)|Expect `"`|Scanner|
 |[E009](#e009)|Expect `&&`|Scanner|
-|[E010](#e010)|Expect `(` for parameters|Parser|
-|[E011](#e011)|Expect function name|Parser|
-|[E012](#e012)|Expect a closed symbol|Parser|
-|[E013](#e013)|Expect a statement block to start a function body|Parser|
-|[E015](#e015)|Expect an expression|Parser|
-|[E016](#e016)|Expect variable name|Parser|
-|[E017](#e017)|Expect `=` to assign the variable|Parser|
-|[E018](#e018)|Expect member name|Parser|
-|[E019](#e019)|Expect `while` to set the loop condition|Parser|
-|[E020](#e020)|Expect `;` after a do-while loop condition|Parser|
-|[E021](#e021)|Expect `:` to start case block|Parser|
-|[E022](#e022)|Expect `,` after an inline expression of a match arm|Parser|
-|[E023](#e023)|Expect `:` to set the else expression|Parser|
+|E010|Expect `(` for parameters|Parser|
+|E011|Expect function name|Parser|
+|E012|Expect a closed symbol|Parser|
+|E013|Expect a statement block to start a function body|Parser|
+|E014|This operation supports a type but received another|Type checker|
+|E015|Expect an expression|Parser|
+|E016|Expect variable name|Parser|
+|E017|Expect `=` to assign the variable|Parser|
+|E018|Expect member name|Parser|
+|E019|Expect `while` to set the loop condition|Parser|
+|E020|Expect `;` after a do-while loop condition|Parser|
+|E021|Expect `:` to start case block|Parser|
+|E022|Expect `,` after an inline expression of a match arm|Parser|
+|E023|Expect `:` to set the else expression|Parser|
+|E024|Expect a type but received another one|Type checker|
+|E025|Types are incompatible|Type checker|
+|E026|Variable already exists|Type checker|
+|E027|Variable doesn't exist|Type checker|
+|E028|Condition must be type of `<boolean>`|Type checker|
+|E029|Expect `else` block because of the return type of the `if` block|Type checker|
+|E030|Return types of `if` and `else` blocks must be the same|Type checker|
+|E031|A `match` value must have a type|Type checker|
+|E032|All match arms must have the same type|Type checker|
 
 ### E004
 *Example*
@@ -82,3 +92,10 @@ Expect "&&" but received "&~".
 |Code|Meaning|
 |-|-|
 |F001|Failed to allocate memory|
+
+## Warnings
+
+|Code|Meaning|Scope|
+|-|-|-|
+|W001|Unnecessary `;`|Parser|
+|W002|Unnecessary unary `+`|Parser|

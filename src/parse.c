@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "scan.h"
 #include "error.h"
+#include <string.h>
 
 typedef struct {
     Module* module;
@@ -168,6 +169,7 @@ static Node* makeNode(NodeType type, int startIndex, int endIndex)
     node->startIndex = startIndex;
     node->endIndex = endIndex;
     node->type = type;
+    node->valueType = NULL;
 
     return node;
 }
@@ -592,7 +594,7 @@ static NodeType operator(TokenType_ type)
         case TOKEN_SLASH:
             return NODE_DIVIDE;
         case TOKEN_MODULO:
-            return NODE_MODULE;
+            return NODE_MODULO;
         case TOKEN_DOUBLE_AMPERSAND:
             return NODE_AND;
         case TOKEN_DOUBLE_PIPE:
@@ -630,6 +632,7 @@ static Node* load()
 {
     Token* identifier = peek();
     Node* node = makeNode(NODE_LOAD, identifier->startIndex, identifier->endIndex);
+    node->children.string = strdup(identifier->value.string);
     advance();
 
     return node;
@@ -644,6 +647,7 @@ static Node* unary()
     switch (operator->type) {
         case TOKEN_PLUS:
             type = -1;
+            addWarningAtCurrent(W002);
             break;
         case TOKEN_MINUS:
             type = NODE_NEGATE;
@@ -678,8 +682,17 @@ static Node* returnExpression()
 {
     int startIndex = peek()->startIndex;
     advance();
-    Node* value = expression();
-    Node* node = makeNode(NODE_RETURN, startIndex, value->endIndex);
+    Node* value = NULL;
+    int endIndex;
+
+    if (!check(TOKEN_SEMICOLON)) {
+        value = expression();
+        endIndex = value->endIndex;
+    } else {
+        endIndex = peek()->endIndex;
+    }
+
+    Node* node = makeNode(NODE_RETURN, startIndex, endIndex);
     node->children.node = value;
 
     return node;
@@ -749,6 +762,7 @@ static Node* declaration()
     }
 
     Node* node = makeNode(NODE_VAR, startIndex, value->endIndex);
+    node->children.varName = strdup(identifier->value.string);
     node->children.varValue = value;
 
     return node;
@@ -882,6 +896,8 @@ Node* parse(Module* module_, Vector* tokens)
     return node;
 }
 
+int i = 0;
+
 void freeNode(Node* node)
 {
     switch (node->type) {
@@ -899,6 +915,7 @@ void freeNode(Node* node)
             freeNode(node->children.functionBody);
             break;
         case NODE_VAR:
+            free(node->children.varName);
             freeNode(node->children.varValue);
             break;
         case NODE_ADD:
@@ -928,7 +945,6 @@ void freeNode(Node* node)
         case NODE_NEGATE:
         case NODE_NOT:
         case NODE_MATCH_ARM_DEFAULT:
-        case NODE_RETURN:
         case NODE_IMPLICIT_RETURN:
         case NODE_PRE_INCREMENT:
         case NODE_PRE_DECREMENT:
@@ -951,7 +967,20 @@ void freeNode(Node* node)
             freeNode(node->children.matchArmExpression);
             freeNode(node->children.matchArmBody);
             break;
+        case NODE_LOAD:
+            free(node->children.string);
+            break;
+        case NODE_RETURN:
+            if (node->children.node) {
+                free(node->children.node);
+            }
+            break;
     }
+
+    // TODO
+    // if (node->valueType) {
+    //     free(node->valueType);
+    // }
 
     free(node);
 }

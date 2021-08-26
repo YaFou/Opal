@@ -47,7 +47,7 @@ void freeVector(Vector* vector)
 
 StringBuilder* newSB()
 {
-    StringBuilder* builder = safeMalloc(sizeof(StringBuilder));
+    StringBuilder *builder = safeMalloc(sizeof(StringBuilder));
     builder->string = safeMalloc(sizeof(char) * SB_INITIAL_CAPACITY);
     builder->length = 0;
     builder->capacity = SB_INITIAL_CAPACITY;
@@ -55,7 +55,8 @@ StringBuilder* newSB()
     return builder;
 }
 
-static void growSB(StringBuilder* builder, size_t length) {
+static void sbGrow(StringBuilder* builder, size_t length)
+{
     if (builder->length + length <= builder->capacity) {
         return;
     }
@@ -64,23 +65,26 @@ static void growSB(StringBuilder* builder, size_t length) {
         builder->capacity *= 2;
     }
 
-    builder->string = safeRealloc(builder->string, builder->capacity);
+    builder->string = safeRealloc(builder->string, sizeof(char) * builder->capacity);
 }
 
-void addSB(StringBuilder* builder, char c) {
-    growSB(builder, 1);
+void sbAdd(StringBuilder* builder, char c)
+{
+    sbGrow(builder, 1);
     builder->string[builder->length++] = c;
 }
 
-void appendSB(StringBuilder* builder, char* string) {
+void sbAppend(StringBuilder* builder, char* string)
+{
     size_t length = strlen(string);
-    growSB(builder, length);
+    sbGrow(builder, length);
     memcpy(builder->string + builder->length, string, length);
     builder->length += length;
 }
 
-char* buildSB(StringBuilder* builder) {
-    addSB(builder, '\0');
+char* buildSB(StringBuilder *builder)
+{
+    sbAdd(builder, '\0');
 
     return strdup(builder->string);
 }
@@ -91,10 +95,54 @@ void freeSB(StringBuilder* builder)
     free(builder);
 }
 
-void clearSB(StringBuilder* builder)
+void clearSB(StringBuilder** builder)
 {
-    freeSB(builder);
-    builder = newSB();
+    freeSB(*builder);
+    *builder = newSB();
+}
+
+// --- MAP ---
+
+Map* newMap()
+{
+    Map* map = safeMalloc(sizeof(Map));
+    map->keys = newVector();
+    map->values = newVector();
+}
+
+void mapSet(Map* map, char* key, void* value)
+{
+    vectorPush(map->keys, key);
+    vectorPush(map->values, value);
+}
+
+void* mapGet(Map* map, char* key)
+{
+    VEC_EACH(map->keys) {
+        if (!strcmp(VEC_EACH_GET(map->keys), key)) {
+            return VEC_GET(map->values, i);
+        }
+    }
+
+    return NULL;
+}
+
+void freeMap(Map* map)
+{
+    freeVector(map->keys);
+    freeVector(map->values);
+    free(map);
+}
+
+bool mapHas(Map* map, char* key)
+{
+    VEC_EACH(map->keys) {
+        if (!strcmp(VEC_EACH_GET(map->keys), key)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // --- OTHER ---
@@ -143,7 +191,7 @@ char* repeatString(char* string, size_t times)
     StringBuilder* builder = newSB();
 
     for (int i = 0; i < times; i++) {
-        appendSB(builder, string);
+        sbAppend(builder, string);
     }
 
     char* result = buildSB(builder);

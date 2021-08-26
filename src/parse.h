@@ -5,6 +5,11 @@
 #include "util.h"
 #include <stdbool.h>
 
+typedef struct {
+    const char* name;
+    bool nullable;
+} Type;
+
 typedef enum {
     // STRUCTURES
     NODE_FUNCTION,
@@ -37,7 +42,6 @@ typedef enum {
     NODE_POWER_ASSIGNMENT,
     NODE_LOAD,
     NODE_MEMBER,
-    NODE_CALL,
     NODE_PRE_INCREMENT,
     NODE_PRE_DECREMENT,
     NODE_POST_INCREMENT,
@@ -71,9 +75,11 @@ typedef struct Node {
 
     // BODY
     NodeType type;
+    Type* valueType;
     union {
         int integer;
         bool boolean;
+        char* string;
         struct Node* node;
         Vector* nodes;
 
@@ -94,6 +100,7 @@ typedef struct Node {
         };
 
         struct {
+            char* varName;
             struct Node* varValue;
         };
 

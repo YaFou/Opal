@@ -1,0 +1,15 @@
+[1/3] Scanning module "./tests/invalid_types_boolean_operation/main.oa".
+[2/3] Parsing module "./tests/invalid_types_boolean_operation/main.oa".
+[3/3] Checking types of module "./tests/invalid_types_boolean_operation/main.oa".
+=== Compilation failed.
+=== 2 errors have occured.
+
+[ERROR] E014 - This operation supports type "<boolean>" but received types "<integer>" and "<boolean>".
+--> ./tests/invalid_types_boolean_operation/main.oa - 3:5
+3 |     1&&false;
+  |     ^^^^^^^^
+
+[ERROR] E014 - This operation supports type "<boolean>" but received types "<integer>" and "<boolean>".
+--> ./tests/invalid_types_boolean_operation/main.oa - 4:5
+4 |     1||false;
+  |     ^^^^^^^^

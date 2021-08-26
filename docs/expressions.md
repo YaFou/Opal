@@ -22,7 +22,7 @@
 >
 > groupedExpression: `(` expression `)`
 >
-> returnExpression: `return` expression
+> returnExpression: `return` expression?
 >
 > ternaryExpression: expression `?` expression `:` expression
 

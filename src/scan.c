@@ -279,12 +279,12 @@ static Token* keyword(const char* keyword)
 static Token* identifier()
 {
     StringBuilder* builder = newSB();
-    addSB(builder, peek());
+    sbAdd(builder, peek());
     advance();
     char c = peek();
 
     while (isAlpha(c) || c == '_' || isDigit(c)) {
-        addSB(builder, c);
+        sbAdd(builder, c);
         advance();
         c = peek();
     }
@@ -352,7 +352,7 @@ static Token* string()
             return token;
         }
 
-        addSB(builder, c);
+        sbAdd(builder, c);
         advance();
     }
 

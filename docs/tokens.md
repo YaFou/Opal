@@ -5,7 +5,7 @@
 |-|-|-|
 |digit|from `0` to `9`|`4`, `2`|
 |char|all characters|`a`, `*`|
-|alpha|from `a` to `z` or from `A` to `Z`|`a`, `K`|
+|alpha|from `a` to `z` or from `A` to `Z` or `_`|`a`, `K`|
 
 ## Token type
 

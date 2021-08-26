@@ -150,7 +150,6 @@ static const char* getNodeName(NodeType type)
         case NODE_POWER_ASSIGNMENT: return "POWER_ASSIGNMENT";
         case NODE_LOAD: return "LOAD";
         case NODE_MEMBER: return "MEMBER";
-        case NODE_CALL: return "CALL";
         case NODE_PRE_INCREMENT: return "PRE_INCREMENT";
         case NODE_PRE_DECREMENT: return "PRE_DECREMENT";
         case NODE_POST_INCREMENT: return "POST_INCREMENT";
@@ -181,7 +180,7 @@ static void printNodeChildren(Node* node)
 {
     switch (node->type) {
         case NODE_VAR:
-            printf("%svalue = ", spaces);
+            printf("%sname = %s\n%svalue = ", spaces, node->children.varName, spaces);
             printNode(node->children.varValue);
             return;
         case NODE_FUNCTION:
@@ -227,7 +226,6 @@ static void printNodeChildren(Node* node)
         case NODE_NOT:
         case NODE_LOOP:
         case NODE_MATCH_ARM_DEFAULT:
-        case NODE_RETURN:
         case NODE_IMPLICIT_RETURN:
         case NODE_PRE_INCREMENT:
         case NODE_PRE_DECREMENT:
@@ -264,7 +262,7 @@ static void printNodeChildren(Node* node)
             printf("%sinteger = %d\n", spaces, node->children.integer);
             return;
         case NODE_BOOLEAN:
-            printf("%sinteger = %s\n", spaces, node->children.boolean ? "true" : "false");
+            printf("%sboolean = %s\n", spaces, node->children.boolean ? "true" : "false");
             return;
         case NODE_MATCH: {
             printf("%scondition = ", spaces);
@@ -288,6 +286,15 @@ static void printNodeChildren(Node* node)
             printf("%sbody = ", spaces);
             printNode(node->children.matchArmBody);
             return;
+        case NODE_LOAD:
+            printf("%sname = %s\n", spaces, node->children.string);
+            return;
+        case NODE_RETURN:
+            if (node->children.node) {
+                printf("%snode = ", spaces);
+                printNode(node->children.node);
+            }
+            return;
     }
 }
 
@@ -295,6 +302,11 @@ static void printNode(Node* node)
 {
     printf("%s (\n", getNodeName(node->type));
     indent();
+
+    if (node->valueType) {
+        printf("%stype = %s\n", spaces, node->valueType->name);
+    }
+
     printNodeChildren(node);
     outdent();
     printf("%s)\n", spaces);

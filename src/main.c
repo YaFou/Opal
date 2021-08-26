@@ -4,6 +4,7 @@
 #include "scan.h"
 #include "error.h"
 #include "parse.h"
+#include "types.h"
 
 #ifdef _DEBUG
 #include "debug.h"
@@ -42,7 +43,7 @@ int main(int argc, const char** argv)
 
     Module* module = createModuleFromPath(argv[1]);
 
-    printf("[1/2] Scanning module \"%s\".\n", module->name);
+    printf("[1/3] Scanning module \"%s\".\n", module->name);
     Vector* tokens = scan(module);
     throwErrorsIfNeeded();
 
@@ -51,13 +52,21 @@ int main(int argc, const char** argv)
     #endif
 
     printf(tty() ?
-        CURSOR_UP_ERASE "[2/2] Parsing module \"%s\".\n" :
-        "[2/2] Parsing module \"%s\".\n",
+        CURSOR_UP_ERASE "[2/3] Parsing module \"%s\".\n" :
+        "[2/3] Parsing module \"%s\".\n",
         module->name
     );
     Node* node = parse(module, tokens);
     throwErrorsIfNeeded();
     freeTokens(tokens);
+
+    printf(tty() ?
+        CURSOR_UP_ERASE "[3/3] Checking types of module \"%s\".\n" :
+        "[3/3] Checking types of module \"%s\".\n",
+        module->name
+    );
+    checkTypes(module, node);
+    throwErrorsIfNeeded();
 
     #ifdef _DEBUG
     debugNode(node);

@@ -1,0 +1,10 @@
+[1/3] Scanning module "./tests/unnecessary_unary_plus/main.oa".
+[2/3] Parsing module "./tests/unnecessary_unary_plus/main.oa".
+[3/3] Checking types of module "./tests/unnecessary_unary_plus/main.oa".
+=== Compilation has succeed.
+=== 1 warning has occured.
+
+[WARNING] W002 - Unnecessary unary "+".
+--> ./tests/unnecessary_unary_plus/main.oa - 3:5
+3 |     +12
+  |     ^

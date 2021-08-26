@@ -4,6 +4,7 @@ SRCS := src/error.c \
 	src/module.c \
 	src/parse.c \
 	src/scan.c \
+	src/types.c \
 	src/util.c
 
 EXE := target/opal

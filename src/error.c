@@ -62,11 +62,22 @@ static void copyPosition(Position* source, Position* destination)
     destination->column = source->column;
 }
 
+static bool isBlankLine(char* line)
+{
+    for (int i = 0; i < strlen(line); i++) {
+        if (line[i] != ' ' && line[i] != '\t') {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static char* generateCode(Module* module, int startIndex, int endIndex, char* message, const char* color)
 {
     StringBuilder* builder = newSB();
-    appendSB(builder, message);
-
+    sbAppend(builder, message);
+    
     const char* source = module->source;
     int index = 0;
     Position start = {0, 0};
@@ -87,27 +98,6 @@ static char* generateCode(Module* module, int startIndex, int endIndex, char* me
         char c = source[index++];
         current.column++;
 
-        if (c == '\n') {
-            current.line++;
-            current.column = 1;
-
-            if (end.line) {
-                vectorPush(lines, buildSB(lineBuilder));
-                freeSB(lineBuilder);
-
-                break;
-            }
-            
-            if (start.line) {
-                vectorPush(lines, buildSB(lineBuilder));
-                clearSB(lineBuilder);
-            } else {
-                clearSB(lineBuilder);
-            }
-
-            continue;
-        }
-
         if (c == '\0') {
             if (start.line) {
                 vectorPush(lines, buildSB(lineBuilder));
@@ -117,35 +107,78 @@ static char* generateCode(Module* module, int startIndex, int endIndex, char* me
                 }
             }
 
-            freeSB(lineBuilder);
-            
             break;
+        }
+
+        if (c == '\n') {
+            current.line++;
+            current.column = 1;
+
+            if (end.line) {
+                vectorPush(lines, buildSB(lineBuilder));
+                break;
+            }
+
+            if (start.line) {
+                vectorPush(lines, buildSB(lineBuilder));
+            }
+
+            clearSB(&lineBuilder);
+
+            continue;
         }
 
         if (c == '\r') {
             continue;
         }
 
-        addSB(lineBuilder, c);
+        sbAdd(lineBuilder, c);
     }
 
-    appendSB(builder, format(tty() ? TEXT_RESET TEXT_FAINT "\n--> %s - %d:%d" : "\n--> %s - %d:%d", module->projectPath, start.line, start.column));
+    freeSB(lineBuilder);
+    sbAppend(builder, format(tty() ? TEXT_RESET TEXT_FAINT "\n--> %s - %d:%d" : "\n--> %s - %d:%d", module->projectPath, start.line, start.column));
     int maxLineLength = strlen(format("%d", end.line));
-    char* codeFormat = format(tty() ? TEXT_RESET "\n%%%dd | %%s\n" : "\n%%%dd | %%s\n", maxLineLength);
+    char* codeFormat = format(tty() ? TEXT_RESET TEXT_FAINT "\n%%%dd | " TEXT_NORMAL "%%s\n" : "\n%%%dd | %%s\n", maxLineLength);
+    bool hasCut = false;
 
     VEC_EACH(lines) {
         char* line = VEC_EACH_GET(lines);
-        int lineNumber = start.line + i;
-        appendSB(builder, format(codeFormat, lineNumber, line));
 
-        if (start.line == end.line) {
-            char* footer = tty() ?
-                format("%s | %s%s%s", repeatString(" ", maxLineLength), color, repeatString(" ", start.column - 1), repeatString("^", end.column - start.column)) :
-                format("%s | %s%s", repeatString(" ", maxLineLength), repeatString(" ", start.column - 1), repeatString("^", end.column - start.column));
+        if (isBlankLine(line)) {
+            if (!hasCut) {
+                hasCut = true;
+                sbAppend(builder, format(tty() ? TEXT_RESET TEXT_FAINT "\n%s" : "\n%s", repeatString("-", maxLineLength + 2)));
+                free(line);
+            }
 
-            appendSB(builder, footer);
+            continue;
         }
 
+        hasCut = false;
+        int lineNumber = start.line + i;
+        sbAppend(builder, format(codeFormat, lineNumber, line));
+        sbAppend(builder, format(tty() ? TEXT_FAINT "%s | " TEXT_RESET : "%s | ", repeatString(" ", maxLineLength)));
+        char* footer;
+
+        if (start.line == end.line) {
+            footer = tty() ?
+                format("%s%s%s", color, repeatString(" ", start.column - 1), repeatString("^", end.column - start.column)) :
+                format("%s%s", repeatString(" ", start.column - 1), repeatString("^", end.column - start.column));
+        } else if (start.line == lineNumber) {
+            footer = tty() ?
+                format("%s%s%s", color, repeatString(" ", start.column - 1), repeatString("^", strlen(line) - start.column + 1)) :
+                format("%s%s", repeatString(" ", start.column - 1), repeatString("^", strlen(line) - start.column + 1));
+        } else if (end.line == lineNumber) {
+            footer = tty() ?
+                format("%s%s", color, repeatString("^", end.column - 1)) :
+                format("%s", repeatString("^", start.column - 1));
+        } else {
+            footer = tty() ?
+                format("%s%s", color, repeatString("^", strlen(line))) :
+                format("%s", repeatString("^", strlen(line)));
+        }
+
+        sbAppend(builder, footer);
         free(line);
     }
 

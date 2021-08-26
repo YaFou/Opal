@@ -50,11 +50,24 @@ typedef struct {
 } StringBuilder;
 
 StringBuilder* newSB();
-void addSB(StringBuilder* builder, char c);
+void sbAdd(StringBuilder* builder, char c);
 char* buildSB(StringBuilder* builder);
 void freeSB(StringBuilder* builder);
-void appendSB(StringBuilder* builder, char* string);
-void clearSB(StringBuilder* builder);
+void sbAppend(StringBuilder* builder, char* string);
+void clearSB(StringBuilder** builder);
+
+// --- MAP ---
+
+typedef struct {
+    Vector* keys;
+    Vector* values;
+} Map;
+
+Map* newMap();
+void mapSet(Map* map, char* key, void* value);
+void* mapGet(Map* map, char* key);
+void freeMap(Map* map);
+bool mapHas(Map* map, char* key);
 
 // --- OTHER ---
 

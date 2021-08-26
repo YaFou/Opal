@@ -1,0 +1,15 @@
+[1/3] Scanning module "./tests/incompatible_types_equal/main.oa".
+[2/3] Parsing module "./tests/incompatible_types_equal/main.oa".
+[3/3] Checking types of module "./tests/incompatible_types_equal/main.oa".
+=== Compilation failed.
+=== 2 errors have occured.
+
+[ERROR] E025 - Types "<integer>" and "<boolean>" are incompatible.
+--> ./tests/incompatible_types_equal/main.oa - 3:5
+3 |     1==false;
+  |     ^^^^^^^^
+
+[ERROR] E025 - Types "<integer>" and "<boolean>" are incompatible.
+--> ./tests/incompatible_types_equal/main.oa - 4:5
+4 |     1!=false;
+  |     ^^^^^^^^

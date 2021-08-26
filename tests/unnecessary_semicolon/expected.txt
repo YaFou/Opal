@@ -1,5 +1,6 @@
-[1/2] Scanning module "./tests/unnecessary_semicolon/main.oa".
-[2/2] Parsing module "./tests/unnecessary_semicolon/main.oa".
+[1/3] Scanning module "./tests/unnecessary_semicolon/main.oa".
+[2/3] Parsing module "./tests/unnecessary_semicolon/main.oa".
+[3/3] Checking types of module "./tests/unnecessary_semicolon/main.oa".
 === Compilation has succeed.
 === 1 warning has occured.
 
