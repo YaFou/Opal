@@ -61,7 +61,7 @@ static void closeFrame()
     freeEnv(current);
 }
 
-static Type* makeType(const char* name, bool nullable)
+static Type* makeType(char* name, bool nullable)
 {
     Type* type = safeMalloc(sizeof(Type));
     type->name = name;
@@ -85,7 +85,7 @@ static Type* voidType()
     return makeType(TYPE_VOID, false);
 }
 
-static void addErrorAtNode(Node* node, const char* message, ...)
+static void addErrorAtNode(Node* node, char* message, ...)
 {
     va_list ap;
     va_start(ap, message);
@@ -96,7 +96,7 @@ static void addErrorAtNode(Node* node, const char* message, ...)
     addErrorAt(module, node->startIndex, node->endIndex, buffer);
 }
 
-static bool isSameType(Type* type, const char* name, bool allowNullable)
+static bool isSameType(Type* type, char* name, bool allowNullable)
 {
     if (name == TYPE_VOID) {
         return false;
@@ -120,7 +120,7 @@ static bool isSameNodeTypes(Node* node1, Node* node2)
     return isSameTypes(node1->valueType, node2->valueType);
 }
 
-static void doubleOperation(Node* node, const char* type)
+static void doubleOperation(Node* node, char* type)
 {
     Type* left = node->children.left->valueType;
     Type* right = node->children.right->valueType;
@@ -130,7 +130,7 @@ static void doubleOperation(Node* node, const char* type)
     }
 }
 
-static void unary(Node* node, const char* type)
+static void unary(Node* node, char* type)
 {
     Type* inner = node->children.node->valueType;
 

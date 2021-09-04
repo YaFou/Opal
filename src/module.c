@@ -4,7 +4,7 @@
 #include "memory.h"
 #include <stdlib.h>
 
-Module* createModuleFromPath(const char* path)
+Module* createModuleFromPath(char* path)
 {
     Module* module = safeMalloc(sizeof(Module));
     module->projectPath = path;

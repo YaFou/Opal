@@ -174,12 +174,12 @@ static Node* makeNode(NodeType type, int startIndex, int endIndex)
     return node;
 }
 
-static void addErrorAtCurrent(const char* message)
+static void addErrorAtCurrent(char* message)
 {
     addErrorAt(parser->module, peek()->startIndex, peek()->endIndex, message);
 }
 
-static void addWarningAtCurrent(const char* message)
+static void addWarningAtCurrent(char* message)
 {
     addWarningAt(parser->module, peek()->startIndex, peek()->endIndex, message);
 }
@@ -227,7 +227,7 @@ static Node* parsePrecedence(Precedence precedence)
     return node;
 }
 
-static Token* consume(TokenType_ type, const char* message)
+static Token* consume(TokenType_ type, char* message)
 {
     if (!check(type)) {
         addErrorAtCurrent(message);
@@ -576,6 +576,7 @@ static Node* grouping()
     advance();
     Node* node = expression();
     consume(TOKEN_RIGHT_PAREN, E012);
+    advance();
 
     return node;
 }
@@ -727,7 +728,7 @@ static Node* member(Node* left)
         return NULL;
     }
 
-    const char* member = peek()->value.string;
+    char* member = peek()->value.string;
     Node* node = makeNode(NODE_MEMBER, left->startIndex, peek()->endIndex);
     advance();
     node->children.memberValue = left;
@@ -855,6 +856,7 @@ static Node* function()
     }
 
     Node* node = makeNode(NODE_FUNCTION, identifier->startIndex, body->endIndex);
+    node->children.functionName = strdup(identifier->value.string);
     node->children.functionParameters = newVector();
     node->children.functionBody = body;
 

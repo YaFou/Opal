@@ -147,7 +147,7 @@ bool mapHas(Map* map, char* key)
 
 // --- OTHER ---
 
-char* readFile(const char* path)
+char* readFile(char* path)
 {
     FILE* file = fopen(path, "rb");
 
@@ -175,7 +175,7 @@ char* readFile(const char* path)
     return buffer;
 }
 
-char* format(const char* format, ...)
+char* format(char* format, ...)
 {
     va_list ap;
     va_start(ap, format);

@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 typedef struct {
-    const char* name;
+    char* name;
     bool nullable;
 } Type;
 
@@ -115,13 +115,14 @@ typedef struct Node {
         };
 
         struct {
+            char* functionName;
             Vector* functionParameters;
             struct Node* functionBody;
         };
 
         struct {
             struct Node* memberValue;
-            const char* memberName;
+            char* memberName;
         };
     } children;
 } Node;

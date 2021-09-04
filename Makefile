@@ -1,4 +1,5 @@
 SRCS := src/error.c \
+	src/ir.c \
 	src/main.c \
 	src/memory.c \
 	src/module.c \

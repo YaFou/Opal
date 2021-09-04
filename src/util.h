@@ -71,8 +71,8 @@ bool mapHas(Map* map, char* key);
 
 // --- OTHER ---
 
-char* readFile(const char* path);
-char* format(const char* format, ...);
+char* readFile(char* path);
+char* format(char* format, ...);
 char* repeatString(char* string, size_t times);
 bool tty();
 

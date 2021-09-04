@@ -85,10 +85,10 @@ typedef struct {
     // BODY
     TokenType_ type;
     union {
-        int integer;        // INTEGER
-        float _float;       // FLOAT
-        char _char;         // CHAR
-        const char* string; // STRING | IDENTIFIER
+        int integer;  // INTEGER
+        float _float; // FLOAT
+        char _char;   // CHAR
+        char* string; // STRING | IDENTIFIER
     } value;
 } Token;
 

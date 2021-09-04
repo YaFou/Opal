@@ -5,6 +5,7 @@
 #include "error.h"
 #include "parse.h"
 #include "types.h"
+#include "ir.h"
 
 #ifdef _DEBUG
 #include "debug.h"
@@ -22,7 +23,7 @@ static void throwErrorsIfNeeded()
     }
 }
 
-int main(int argc, const char** argv)
+int main(int argc, char** argv)
 {
     #ifdef _WIN32
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -43,7 +44,7 @@ int main(int argc, const char** argv)
 
     Module* module = createModuleFromPath(argv[1]);
 
-    printf("[1/3] Scanning module \"%s\".\n", module->name);
+    printf("[1/4] Scanning module \"%s\".\n", module->name);
     Vector* tokens = scan(module);
     throwErrorsIfNeeded();
 
@@ -52,8 +53,8 @@ int main(int argc, const char** argv)
     #endif
 
     printf(tty() ?
-        CURSOR_UP_ERASE "[2/3] Parsing module \"%s\".\n" :
-        "[2/3] Parsing module \"%s\".\n",
+        CURSOR_UP_ERASE "[2/4] Parsing module \"%s\".\n" :
+        "[2/4] Parsing module \"%s\".\n",
         module->name
     );
     Node* node = parse(module, tokens);
@@ -61,8 +62,8 @@ int main(int argc, const char** argv)
     freeTokens(tokens);
 
     printf(tty() ?
-        CURSOR_UP_ERASE "[3/3] Checking types of module \"%s\".\n" :
-        "[3/3] Checking types of module \"%s\".\n",
+        CURSOR_UP_ERASE "[3/4] Checking types of module \"%s\".\n" :
+        "[3/4] Checking types of module \"%s\".\n",
         module->name
     );
     checkTypes(module, node);
@@ -73,12 +74,24 @@ int main(int argc, const char** argv)
     #endif
 
     printf(tty() ?
+        CURSOR_UP_ERASE "[4/4] Generating IR of module \"%s\".\n" :
+        "[4/4] Generating IR of module \"%s\".\n",
+        module->name
+    );
+    IR* ir = generateIR(node);
+    freeNode(node);
+
+    #ifdef _DEBUG
+    debugIR(ir);
+    #endif
+
+    printf(tty() ?
         CURSOR_UP_ERASE TEXT_GREEN "=== Compilation has succeed.\n" TEXT_RESET :
         "=== Compilation has succeed.\n",
         module->name
     );
     throwWarnings();
-    freeNode(node);
+    freeIR(ir);
     freeModule(module);
 
     return 0;

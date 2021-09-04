@@ -100,12 +100,12 @@ static bool match(char c)
     return false;
 }
 
-static void addErrorAtCurrent(const char* message, char c)
+static void addErrorAtCurrent(char* message, char c)
 {
     addErrorAt(scanner->module, scanner->currentIndex, scanner->currentIndex + 1, message, c);
 }
 
-static bool expect(char c, const char* message)
+static bool expect(char c, char* message)
 {
     if (!match(c)) {
         advance();
@@ -178,7 +178,7 @@ static bool isAlpha(char c)
         (c >= 'A' && c <= 'Z');
 }
 
-static Token* keyword(const char* keyword)
+static Token* keyword(char* keyword)
 {
     switch (*keyword) {
         case 'a':
@@ -290,7 +290,7 @@ static Token* identifier()
     }
 
     back();
-    const char* identifier = buildSB(builder);
+    char* identifier = buildSB(builder);
     freeSB(builder);
     Token* kword = keyword(identifier);
 
@@ -409,7 +409,7 @@ static Token* generateToken()
             if (match('*')) {
                 advance();
 
-                while (peek() != '*' && peekNext() != '/') {
+                while (peek() != '*' || peekNext() != '/') {
                     if (isAtEnd()) {
                         return NULL;
                     }

@@ -47,12 +47,12 @@
 #define W001 "W001 - Unnecessary \";\"."
 #define W002 "W002 - Unnecessary unary \"+\"."
 
-void throwFatal(const char* message);
-void throwError(const char* message, ...);
-void addErrorAt(Module* module, int startIndex, int endIndex, const char* message, ...);
+void throwFatal(char* message);
+void throwError(char* message, ...);
+void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...);
 void throwErrors();
 bool hasErrors();
-void addWarningAt(Module* module, int startIndex, int endIndex, const char* message, ...);
+void addWarningAt(Module* module, int startIndex, int endIndex, char* message, ...);
 void throwWarnings();
 
 #endif

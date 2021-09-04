@@ -13,7 +13,7 @@ typedef struct {
 Vector* errors;
 Vector* warnings;
 
-void throwFatal(const char* message)
+void throwFatal(char* message)
 {
     fprintf(
         stderr,
@@ -44,7 +44,7 @@ static void addWarning(char* message)
     vectorPush(warnings, message);
 }
 
-void throwError(const char* message, ...)
+void throwError(char* message, ...)
 {
     va_list ap;
     va_start(ap, message);
@@ -73,12 +73,12 @@ static bool isBlankLine(char* line)
     return true;
 }
 
-static char* generateCode(Module* module, int startIndex, int endIndex, char* message, const char* color)
+static char* generateCode(Module* module, int startIndex, int endIndex, char* message, char* color)
 {
     StringBuilder* builder = newSB();
     sbAppend(builder, message);
     
-    const char* source = module->source;
+    char* source = module->source;
     int index = 0;
     Position start = {0, 0};
     Position end = {0, 0};
@@ -189,7 +189,7 @@ static char* generateCode(Module* module, int startIndex, int endIndex, char* me
     return code;
 }
 
-void addErrorAt(Module* module, int startIndex, int endIndex, const char* message, ...)
+void addErrorAt(Module* module, int startIndex, int endIndex, char* message, ...)
 {
     va_list ap;
     va_start(ap, message);
@@ -205,7 +205,7 @@ void throwErrors()
     fprintf(stderr, tty() ? TEXT_RED "=== %d %s occured.\n" : "=== %d %s occured.\n", errors->size, errors->size > 1 ? "errors have" : "error has");
 
     VEC_EACH(errors) {
-        const char* message = VEC_EACH_GET(errors);
+        char* message = VEC_EACH_GET(errors);
         fprintf(stderr, tty() ? TEXT_BOLD TEXT_RED "\n[ERROR]" TEXT_NORMAL " %s\n" TEXT_RESET : "\n[ERROR] %s\n", message);
     }
 
@@ -222,7 +222,7 @@ bool hasErrors()
     return errors && errors->size;
 }
 
-void addWarningAt(Module* module, int startIndex, int endIndex, const char* message, ...)
+void addWarningAt(Module* module, int startIndex, int endIndex, char* message, ...)
 {
     va_list ap;
     va_start(ap, message);
@@ -242,7 +242,7 @@ void throwWarnings()
     fprintf(stderr, tty() ? TEXT_YELLOW "=== %d %s occured.\n" : "=== %d %s occured.\n", warnings->size, warnings->size > 1 ? "warnings have" : "warning has");
 
     VEC_EACH(warnings) {
-        const char* message = VEC_EACH_GET(warnings);
+        char* message = VEC_EACH_GET(warnings);
         fprintf(stderr, tty() ? TEXT_BOLD TEXT_YELLOW "\n[WARNING]" TEXT_NORMAL " %s\n" TEXT_RESET : "\n[WARNING] %s\n", message);
     }
 }

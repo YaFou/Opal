@@ -2,7 +2,7 @@
 #include "scan.h"
 #include <stdio.h>
 
-static const char* getTokenName(TokenType_ type)
+static char* getTokenName(TokenType_ type)
 {
     switch (type) {
         case TOKEN_PLUS: return "PLUS";
@@ -120,7 +120,7 @@ static void outdent()
     spaces = repeatString(" ", spacesNumber);
 }
 
-static const char* getNodeName(NodeType type)
+static char* getNodeName(NodeType type)
 {
     switch (type) {
         case NODE_FUNCTION: return "FUNCTION";
@@ -319,4 +319,103 @@ void debugNode(Node* node)
     spaces = "";
     printNode(node);
     printf("\n\n");
+}
+
+static char* getInstructionName(InstructionType type)
+{
+    switch (type) {
+        case IR_MOVE: return "MOV";
+        case IR_ADD: return "ADD";
+        case IR_SUBSTRACT: return "SUB";
+        case IR_MULTIPLY: return "MUL";
+        case IR_DIVIDE: return "DIV";
+        case IR_MODULO: return "MOD";
+        case IR_RETURN: return "RET";
+        case IR_NEGATE: return "NEG";
+        case IR_NOT: return "NOT";
+        case IR_AND: return "AND";
+        case IR_OR: return "OR";
+        case IR_ALLOCATE: return "ALL";
+        case IR_STORE: return "STR";
+        case IR_LOAD: return "LDR";
+        case IR_JUMP: return "JMP";
+        case IR_JUMP_IF_TRUE: return "JIT";
+        case IR_EQUAL: return "EQU";
+        case IR_NOT_EQUAL: return "NEQ";
+        case IR_LESS: return "LET";
+        case IR_LESS_EQUAL: return "LTE";
+        case IR_GREATER: return "GRT";
+        case IR_GREATER_EQUAL: return "GTE";
+    }
+}
+
+static void debugOperand(Operand* operand)
+{
+    switch (operand->type) {
+        case OPERAND_INTEGER:
+            printf("%d", operand->value.integer);
+            break;
+        case OPERAND_REGISTER:
+            printf("%%%d", operand->value.reg->virtualNumber);
+            break;
+        case OPERAND_LABEL:
+            printf(".%d", operand->value.integer);
+            break;
+    }
+}
+
+static void debugInstruction(Instruction* instruction)
+{
+    printf("    %s", getInstructionName(instruction->type));
+
+    if (instruction->operand1) {
+        printf(" ");
+        debugOperand(instruction->operand1);
+    }
+
+    if (instruction->operand2) {
+        printf(", ");
+        debugOperand(instruction->operand2);
+    }
+
+    if (instruction->operand3) {
+        printf(", ");
+        debugOperand(instruction->operand3);
+    }
+
+    printf("\n");
+}
+
+static void debugLabel(Label* label)
+{
+    printf(".%d\n", label->number);
+
+    VEC_EACH(label->instructions) {
+        Instruction* instruction = VEC_EACH_GET(label->instructions);
+        debugInstruction(instruction);
+    }
+}
+
+static void debugFunction(Function* function)
+{
+    printf("%s %d {\n", function->name, function->argumentCount);
+
+    VEC_EACH(function->labels) {
+        Label* label = VEC_EACH_GET(function->labels);
+        debugLabel(label);
+    }
+
+    printf("}\n\n");
+}
+
+void debugIR(IR* ir)
+{
+    printf("--- IR ---\n");
+
+    VEC_EACH(ir->functions) {
+        Function* function = VEC_EACH_GET(ir->functions);
+        debugFunction(function);
+    }
+
+    printf("\n");
 }
